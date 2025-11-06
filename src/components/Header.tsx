@@ -3,10 +3,13 @@
 import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 const Header = () => {
   const { toggleCart, cartItems } = useCart();
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -63,6 +66,28 @@ const Header = () => {
               </svg>
             </button>
 
+            {/* Auth */}
+            {user ? (
+              <>
+                <span className="text-sm text-foreground/70 px-2">{user.name}</span>
+                {user.role === 'admin' && (
+                  <Link href="/admin" className="p-2 text-primary hover:text-primary/80 transition-colors" title="Admin Panel">
+                    ⚙️
+                  </Link>
+                )}
+                <button
+                  onClick={logout}
+                  className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition"
+                >
+                  خروج
+                </button>
+              </>
+            ) : (
+              <Link href="/login" className="px-3 py-1 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded transition">
+                دخول
+              </Link>
+            )}
+
             {/* Cart */}
             <button 
               onClick={toggleCart} 
@@ -92,7 +117,7 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-secondary">
+          <div className="md:hidden py-4 border-t border-secondary space-y-4">
             <nav className="flex flex-col space-y-4">
               <a href="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</a>
               <a href="/products" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
@@ -100,6 +125,29 @@ const Header = () => {
               <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">About</a>
               <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Contact</a>
             </nav>
+            {/* Mobile Auth */}
+            <div className="border-t border-secondary pt-4">
+              {user ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-foreground/70">مرحباً، {user.name}</p>
+                  {user.role === 'admin' && (
+                    <Link href="/admin" className="text-primary hover:text-primary/80 transition-colors text-sm">
+                      ⚙️ لوحة التحكم
+                    </Link>
+                  )}
+                  <button
+                    onClick={logout}
+                    className="w-full px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition"
+                  >
+                    تسجيل الخروج
+                  </button>
+                </div>
+              ) : (
+                <Link href="/login" className="block w-full px-3 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded transition text-center">
+                  تسجيل الدخول
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>

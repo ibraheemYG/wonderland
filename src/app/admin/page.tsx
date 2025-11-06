@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import type { ProductRecord, ProductCategory } from '@/data/products';
 
 const STORAGE_KEY = 'wonderland_custom_products';
@@ -14,6 +15,7 @@ const categoryOptions: Array<{ label: string; value: ProductCategory }> = [
   { label: 'الديكور', value: 'decor' },
   { label: 'الأجهزة', value: 'appliances' },
   { label: 'عروض خاصة', value: 'sale' },
+  { label: 'المفروشات', value: 'furnishings' },
 ];
 
 function loadCustomProducts(): ProductRecord[] {
@@ -39,6 +41,7 @@ function persistCustomProducts(products: ProductRecord[]) {
 
 export default function AdminPage() {
   const router = useRouter();
+  const { user, logout, isAdmin, isLoading } = useAuth();
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [formState, setFormState] = useState({
@@ -52,6 +55,25 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+
+  // فحص المصادقة
+  useEffect(() => {
+    if (!isLoading && (!user || !isAdmin())) {
+      router.push('/login');
+    }
+  }, [user, isAdmin, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="text-white text-xl">جاري التحميل...</div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin()) {
+    return null;
+  }
 
   useEffect(() => {
     setProducts(loadCustomProducts());
@@ -156,6 +178,20 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      {/* Admin Header */}
+      <div className="bg-black/40 border-b border-white/10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-white">لوحة التحكم - {user?.name}</h1>
+            <button
+              onClick={logout}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm"
+            >
+              تسجيل الخروج
+            </button>
+          </div>
+        </div>
+      </div>
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
           <div>
