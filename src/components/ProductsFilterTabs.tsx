@@ -1,0 +1,48 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+export type FilterOption = { label: string; slug?: string };
+
+const defaultOptions: FilterOption[] = [
+  { label: 'جميع المنتجات' },
+  { label: 'غرف المعيشة', slug: 'living-room' },
+  { label: 'غرف النوم', slug: 'bedroom' },
+  { label: 'المطابخ', slug: 'kitchen' },
+  { label: 'الحمامات', slug: 'bathroom' },
+  { label: 'الديكور', slug: 'decor' },
+  { label: 'المفروشات', slug: 'furnishings' },
+  { label: 'الأجهزة', slug: 'appliances' },
+  { label: 'عروض خاصة', slug: 'sale' },
+];
+
+export default function ProductsFilterTabs({ options = defaultOptions }: { options?: FilterOption[] }) {
+  const searchParams = useSearchParams();
+  const selectedCategory = searchParams.get('category');
+
+  return (
+    <nav className="mb-10 flex flex-wrap gap-3">
+      {options.map((option) => {
+        const isActive =
+          (option.slug && option.slug === selectedCategory) ||
+          (!option.slug && !selectedCategory);
+        const href = option.slug ? `/products?category=${option.slug}` : '/products';
+        return (
+          <Link
+            key={option.label}
+            href={href}
+            className={`px-5 py-2 rounded-full border transition-colors ${
+              isActive
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-secondary text-foreground border-transparent hover:bg-primary/10'
+            }`}
+          >
+            {option.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
