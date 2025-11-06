@@ -7,12 +7,18 @@ export interface User {
   username: string;
   role: 'admin' | 'user';
   name: string;
+  email?: string;
+  phone?: string;
+  country?: string;
+  furniturePreferences?: string[];
+  googleAuth?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
+  googleLogin: (userData: Partial<User>) => void;
   logout: () => void;
   isAdmin: () => boolean;
 }
@@ -64,12 +70,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('currentUser');
   };
 
+  const googleLogin = (userData: Partial<User>) => {
+    const newUser: User = {
+      id: userData.id || Math.floor(Math.random() * 10000),
+      username: userData.username || userData.email?.split('@')[0] || 'google-user',
+      role: userData.role || 'user',
+      name: userData.name || '',
+      email: userData.email,
+      phone: userData.phone,
+      country: userData.country,
+      furniturePreferences: userData.furniturePreferences,
+      googleAuth: true,
+    };
+
+    setUser(newUser);
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+  };
+
   const isAdmin = () => {
     return user?.role === 'admin';
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, isLoading, login, googleLogin, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
