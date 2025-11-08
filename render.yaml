@@ -12,14 +12,14 @@ services:
       - key: NODE_VERSION
         value: "22"
       - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
-        value: ""
+        value: "1021477358452-rl84k4sosoogajgttclflj15lltf5is5.apps.googleusercontent.com"
       - key: GOOGLE_CLIENT_SECRET
-        value: ""
+        value: "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"
       - key: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-        value: "d416495193741984"
+        value: "dyfbk8xc5"
       - key: CLOUDINARY_API_KEY
-        value: "416495193741984"
+        value: "263752272783441"
       - key: CLOUDINARY_API_SECRET
-        value: "4mf7TZCqyzog2CsdNzA5d7R9st8"
+        value: "V91inRcRFBQWqbQNF9HzecxEzVw"
       - key: NEXT_PUBLIC_API_URL
         value: "https://wonderland-f0vb.onrender.com"
