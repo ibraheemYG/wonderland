@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { AnalyticsProvider } from "@/context/AnalyticsContext";
 import ClientLayout from "@/components/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -23,9 +24,11 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
           <ThemeProvider>
-            <CartProvider>
-              <ClientLayout>{children}</ClientLayout>
-            </CartProvider>
+            <AnalyticsProvider>
+              <CartProvider>
+                <ClientLayout>{children}</ClientLayout>
+              </CartProvider>
+            </AnalyticsProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

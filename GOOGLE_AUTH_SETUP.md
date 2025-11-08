@@ -74,6 +74,17 @@ interface User {
 
 ## حل المشاكل
 
+### مشكلة: خطأ 404 عند تسجيل الدخول (Error 404)
+هذا الخطأ يحدث غالبًا لأن Google لا يتعرف على مصدر الطلب (أي `localhost`).
+
+**الحل:**
+1.  اذهب إلى [Google Cloud Console > Credentials](https://console.cloud.google.com/apis/credentials).
+2.  اختر معرّف عميل OAuth 2.0 الخاص بك.
+3.  في قسم **Authorized JavaScript origins**، تأكد من إضافة العناوين التالية بالضبط:
+    -   `http://localhost`
+    -   `http://localhost:3000`
+4.  اضغط **Save**. قد يستغرق تطبيق التغييرات بضع دقائق.
+
 ### مشكلة: "Invalid Client ID"
 - تأكد من نسخ Client ID الصحيح من Google Cloud Console
 - تحقق من أن `.env.local` يحتوي على القيمة الصحيحة

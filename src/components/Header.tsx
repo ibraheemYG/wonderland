@@ -78,11 +78,20 @@ const Header = () => {
                   <nav className="py-2">
                     {user.role === 'admin' && (
                       <>
-                        <Link href="/admin" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
-                          ⚙️ لوحة التحكم
+                        <Link href="/admin/dashboard" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          📊 لوحة التحكم
                         </Link>
-                        <Link href="/upload" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
-                          � رفع الصور
+                        <Link href="/admin/users" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          👥 المستخدمين
+                        </Link>
+                        <Link href="/admin/products" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          📦 المنتجات
+                        </Link>
+                        <Link href="/admin/surveys" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          📋 الاستبيانات
+                        </Link>
+                        <Link href="/admin/admins" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          🔐 إدارة الأدمن
                         </Link>
                         <div className="border-t border-secondary my-2"></div>
                       </>
@@ -121,6 +130,13 @@ const Header = () => {
                 </span>
               )}
             </button>
+
+            {/* Survey Button - Always Visible */}
+            <Link href="/survey" className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary" title="Survey">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </Link>
 
             {/* Mobile Menu Button */}
             <button 
