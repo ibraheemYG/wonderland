@@ -28,8 +28,6 @@ const Header = () => {
           <nav className="hidden md:flex md:space-x-8">
             <a href="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</a>
             <a href="/products" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
-            <a href="/survey" className="text-foreground hover:text-primary transition-colors font-medium">📋 استبانة</a>
-            <a href="/upload" className="text-foreground hover:text-primary transition-colors font-medium">📤 رفع</a>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Collections</a>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">About</a>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Contact</a>
@@ -123,8 +121,6 @@ const Header = () => {
             <nav className="flex flex-col space-y-4">
               <a href="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</a>
               <a href="/products" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
-              <a href="/survey" className="text-foreground hover:text-primary transition-colors font-medium">📋 استبانة</a>
-              <a href="/upload" className="text-foreground hover:text-primary transition-colors font-medium">📤 رفع</a>
               <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Collections</a>
               <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">About</a>
               <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Contact</a>
