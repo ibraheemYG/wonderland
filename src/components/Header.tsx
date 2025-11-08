@@ -81,15 +81,15 @@ const Header = () => {
                         <Link href="/admin" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
                           ⚙️ لوحة التحكم
                         </Link>
-                        <Link href="/survey" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
-                          📋 الاستبيانات
-                        </Link>
                         <Link href="/upload" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
-                          📤 رفع الصور
+                          � رفع الصور
                         </Link>
                         <div className="border-t border-secondary my-2"></div>
                       </>
                     )}
+                    <Link href="/survey" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                       الاستبيان
+                    </Link>
                     <button
                       onClick={logout}
                       className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-secondary hover:text-red-700 transition-colors"
