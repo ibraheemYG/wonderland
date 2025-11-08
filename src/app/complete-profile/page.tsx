@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
-
-export default function CompleteProfePage() {
+function CompleteProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, googleLogin } = useAuth();
@@ -238,5 +236,13 @@ export default function CompleteProfePage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function CompleteProfePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>}>
+      <CompleteProfileContent />
+    </Suspense>
   );
 }
