@@ -71,7 +71,7 @@ const Header = () => {
               <>
                 <span className="text-sm text-foreground/70 px-2">{user.name}</span>
                 {user.role === 'admin' && (
-                  <Link href="/admin" className="p-2 text-primary hover:text-primary/80 transition-colors" title="Admin Panel">
+                  <Link href="/admin" className="hidden sm:block p-2 text-primary hover:text-primary/80 transition-colors rounded-full hover:bg-secondary" title="Admin Panel">
                     ⚙️
                   </Link>
                 )}
@@ -83,8 +83,8 @@ const Header = () => {
                 </button>
               </>
             ) : (
-              <Link href="/login" className="px-3 py-1 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded transition">
-                دخول
+              <Link href="/admin" className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary" title="Admin Panel">
+                ⚙️
               </Link>
             )}
 
