@@ -28,7 +28,7 @@ export default function LoginPage() {
     script.defer = true;
     script.onload = () => {
       setGoogleReady(true);
-      if (window.google) {
+      if (window.google && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
         window.google.accounts.id.initialize({
           client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
           callback: handleGoogleSignIn,
