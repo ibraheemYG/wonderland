@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function CompleteProfePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
