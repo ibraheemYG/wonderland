@@ -189,16 +189,20 @@ export default function LoginPage() {
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 border-t border-white/20"></div>
-            <span className="text-white/60 text-sm">أو</span>
-            <div className="flex-1 border-t border-white/20"></div>
-          </div>
+          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="flex items-center gap-4 my-6">
+                <div className="flex-1 border-t border-white/20"></div>
+                <span className="text-white/60 text-sm">أو</span>
+                <div className="flex-1 border-t border-white/20"></div>
+              </div>
 
-          {/* Google Sign-In Button */}
-          <div className="bg-white rounded-lg p-4 flex justify-center">
-            <div id="google-sign-in-button" style={{ width: '100%' }}></div>
-          </div>
+              {/* Google Sign-In Button */}
+              <div className="bg-white rounded-lg p-4 flex justify-center">
+                <div id="google-sign-in-button" style={{ width: '100%' }}></div>
+              </div>
+            </>
+          )}
 
           {/* Footer */}
           <div className="text-center mt-6 text-white/60 text-sm">
