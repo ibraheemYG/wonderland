@@ -59,32 +59,51 @@ const Header = () => {
               </svg>
             </button>
 
-            {/* Account */}
-            <button className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
-
-            {/* Auth */}
+            {/* User Dropdown */}
             {user ? (
-              <>
-                <span className="text-sm text-foreground/70 px-2">{user.name}</span>
-                {user.role === 'admin' && (
-                  <Link href="/admin" className="hidden sm:block p-2 text-primary hover:text-primary/80 transition-colors rounded-full hover:bg-secondary" title="Admin Panel">
-                    ⚙️
-                  </Link>
-                )}
-                <button
-                  onClick={logout}
-                  className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition"
-                >
-                  خروج
+              <div className="relative group">
+                <button className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </button>
-              </>
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 mt-2 w-56 bg-background border border-secondary rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  {/* User Info */}
+                  <div className="p-4 border-b border-secondary">
+                    <p className="text-sm font-semibold text-foreground">{user.name}</p>
+                    <p className="text-xs text-foreground/60">{user.email || 'مستخدم'}</p>
+                  </div>
+                  {/* Menu Items */}
+                  <nav className="py-2">
+                    {user.role === 'admin' && (
+                      <>
+                        <Link href="/admin" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          ⚙️ لوحة التحكم
+                        </Link>
+                        <Link href="/survey" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          📋 الاستبيانات
+                        </Link>
+                        <Link href="/upload" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary hover:text-primary transition-colors">
+                          📤 رفع الصور
+                        </Link>
+                        <div className="border-t border-secondary my-2"></div>
+                      </>
+                    )}
+                    <button
+                      onClick={logout}
+                      className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-secondary hover:text-red-700 transition-colors"
+                    >
+                      تسجيل الخروج
+                    </button>
+                  </nav>
+                </div>
+              </div>
             ) : (
-              <Link href="/admin" className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary" title="Admin Panel">
-                ⚙️
+              <Link href="/login" className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary" title="Login">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </Link>
             )}
 
