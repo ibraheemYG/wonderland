@@ -1,7 +1,6 @@
 'use client';
 
-import { CldUploadWidget } from 'next-cloudinary';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 
 interface ImageUploadProps {
@@ -18,50 +17,77 @@ export default function ImageUpload({
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadSuccess = (result: any) => {
-    setIsUploading(false);
-    const imageUrl = result.info.secure_url;
-    setUploadedImage(imageUrl);
-    setError('');
-    
-    if (onUploadSuccess) {
-      onUploadSuccess(imageUrl);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const file = files[0];
+    if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5242880) {
+      setError('حجم الملف أكبر من 5MB');
+      return;
     }
-  };
 
-  const handleUploadError = (error: any) => {
-    setIsUploading(false);
-    setError('فشل رفع الصورة. حاول مرة أخرى.');
-    console.error('Upload error:', error);
+    setIsUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', folder);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل رفع الصورة');
+      }
+
+      const data = await response.json();
+      const imageUrl = data.secure_url;
+      
+      setUploadedImage(imageUrl);
+      setIsUploading(false);
+
+      if (onUploadSuccess) {
+        onUploadSuccess(imageUrl);
+      }
+
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      setIsUploading(false);
+      setError('فشل رفع الصورة. حاول مرة أخرى.');
+      console.error('Upload error:', err);
+    }
   };
 
   return (
     <div className="w-full">
-      <CldUploadWidget
-        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'wonderland'}
-        options={{
-          folder: folder,
-          multiple: multiple,
-          sources: ['local', 'url'],
-          maxFileSize: 5242880,
-        }}
-        onSuccess={handleUploadSuccess}
-        onError={handleUploadError}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+        disabled={isUploading}
+      />
+
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg transition font-semibold disabled:opacity-50"
+        disabled={isUploading}
       >
-        {({ open }: { open: () => void }) => (
-          <button
-            onClick={() => {
-              setIsUploading(true);
-              open();
-            }}
-            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg transition font-semibold disabled:opacity-50"
-            disabled={isUploading}
-          >
-            {isUploading ? '⏳ جاري الرفع...' : '📤 رفع صورة'}
-          </button>
-        )}
-      </CldUploadWidget>
+        {isUploading ? '⏳ جاري الرفع...' : '📤 رفع صورة'}
+      </button>
 
       {error && (
         <div className="mt-4 p-3 bg-red-500/20 border border-red-400 rounded-lg text-red-100 text-sm">
