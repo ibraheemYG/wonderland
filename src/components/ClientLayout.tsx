@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
 import SideCart from './SideCart';
-import SurveySidebar from './SurveySidebar';
 import SurveySuggestion from './SurveySuggestion';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +26,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {children}
       <Footer />
       <SideCart />
-      <SurveySidebar />
       <SurveySuggestion />
     </>
   );

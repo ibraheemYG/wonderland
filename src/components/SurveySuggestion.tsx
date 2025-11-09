@@ -28,7 +28,7 @@ export default function SurveySuggestion() {
   }
 
   return (
-    <div className="fixed bottom-24 right-4 z-40 max-w-sm animate-bounce">
+    <div className="fixed bottom-24 right-4 z-40 max-w-sm">
       <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg shadow-2xl p-4 border border-white/20">
         <div className="flex gap-3 items-start">
           <span className="text-2xl">🎁</span>
