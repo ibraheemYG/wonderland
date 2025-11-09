@@ -46,9 +46,15 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
       };
 
       // حفظ في localStorage
-      const responses = JSON.parse(localStorage.getItem('survey_responses') || '[]');
-      responses.push(surveyData);
-      localStorage.setItem('survey_responses', JSON.stringify(responses));
+      try {
+        const responses = JSON.parse(localStorage.getItem('survey_responses') || '[]');
+        responses.push(surveyData);
+        localStorage.setItem('survey_responses', JSON.stringify(responses));
+        console.log('✅ Survey saved:', surveyData);
+        console.log('All surveys:', responses);
+      } catch (error) {
+        console.error('❌ Failed to save survey:', error);
+      }
 
       if (onSubmit) {
         onSubmit(surveyData);

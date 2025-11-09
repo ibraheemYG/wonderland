@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react';
 interface SurveyResponse {
   name: string;
   email: string;
-  country: string;
   preferences: string[];
   budget: string;
   timestamp: number;
@@ -33,8 +32,20 @@ export default function SurveysPage() {
   useEffect(() => {
     if (mounted && isAdmin()) {
       const stored = localStorage.getItem('survey_responses');
+      console.log('📋 Loading surveys...');
+      console.log('Stored survey data:', stored);
       if (stored) {
-        setResponses(JSON.parse(stored));
+        try {
+          const parsed = JSON.parse(stored);
+          console.log('✅ Surveys loaded:', parsed);
+          setResponses(parsed);
+        } catch (error) {
+          console.error('❌ Failed to parse surveys:', error);
+          setResponses([]);
+        }
+      } else {
+        console.log('⚠️ No surveys found in localStorage');
+        setResponses([]);
       }
     }
   }, [mounted, isAdmin]);
@@ -44,11 +55,10 @@ export default function SurveysPage() {
   }
 
   const downloadCSV = () => {
-    const headers = ['الاسم', 'البريد الإلكتروني', 'الدولة', 'الميزانية', 'التفضيلات', 'التاريخ'];
+    const headers = ['الاسم', 'البريد الإلكتروني', 'الميزانية', 'التفضيلات', 'التاريخ'];
     const data = responses.map(r => [
       r.name,
       r.email,
-      r.country,
       r.budget,
       r.preferences.join('، '),
       new Date(r.timestamp).toLocaleDateString('ar-SA'),
@@ -92,7 +102,6 @@ export default function SurveysPage() {
                 <tr>
                   <th className="px-6 py-4 text-right text-white font-semibold">الاسم</th>
                   <th className="px-6 py-4 text-right text-white font-semibold">البريد الإلكتروني</th>
-                  <th className="px-6 py-4 text-right text-white font-semibold">الدولة</th>
                   <th className="px-6 py-4 text-right text-white font-semibold">الميزانية</th>
                   <th className="px-6 py-4 text-right text-white font-semibold">التفضيلات</th>
                   <th className="px-6 py-4 text-right text-white font-semibold">التاريخ</th>
@@ -104,7 +113,6 @@ export default function SurveysPage() {
                     <tr key={index} className="hover:bg-white/5 transition">
                       <td className="px-6 py-4 text-white/80">{r.name}</td>
                       <td className="px-6 py-4 text-white/80">{r.email}</td>
-                      <td className="px-6 py-4 text-white/80">{r.country}</td>
                       <td className="px-6 py-4 text-white/80">{r.budget}</td>
                       <td className="px-6 py-4 text-white/80 text-sm">
                         <div className="flex flex-wrap gap-1">

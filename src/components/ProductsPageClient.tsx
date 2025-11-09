@@ -61,17 +61,33 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
 
   useEffect(() => {
     // تحميل المنتجات من localStorage
-    try {
-      const stored = localStorage.getItem('wonderland_custom_products');
-      if (stored) {
-        const customProducts = JSON.parse(stored);
-        setProducts(Array.isArray(customProducts) ? customProducts : []);
+    const loadProducts = () => {
+      try {
+        const stored = localStorage.getItem('wonderland_custom_products');
+        console.log('📦 Attempting to load products from localStorage...');
+        console.log('Stored data:', stored);
+        
+        if (stored) {
+          const customProducts = JSON.parse(stored);
+          console.log('✅ Products loaded:', customProducts);
+          setProducts(Array.isArray(customProducts) ? customProducts : []);
+        } else {
+          console.log('⚠️ No products found in localStorage');
+          setProducts([]);
+        }
+      } catch (error) {
+        console.error('❌ Failed to load products:', error);
+        setProducts([]);
       }
-    } catch (error) {
-      console.error('Failed to load products:', error);
-      setProducts([]);
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    loadProducts();
+    
+    // إعادة محاولة التحميل كل 2 ثانية
+    const interval = setInterval(loadProducts, 2000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const filteredProducts = selectedCategory
@@ -96,15 +112,30 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
     <main className="min-h-screen bg-background">
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="mb-10 border-b border-secondary/60 pb-6">
-          <p className="uppercase tracking-[0.3em] text-xs text-foreground/60 mb-3">product collections</p>
-          <h1 className="text-4xl font-bold text-foreground mb-3">
-            {categoryMeta ? categoryMeta.title : 'قائمة المنتجات الكاملة'}
-          </h1>
-          <p className="text-foreground/70 max-w-2xl">
-            {categoryMeta
-              ? categoryMeta.description
-              : 'استكشف مجموعاتنا المتنوعة من الأثاث والإكسسوارات المصممة بروح اسكندنافية معاصرة.'}
-          </p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <div>
+              <p className="uppercase tracking-[0.3em] text-xs text-foreground/60 mb-3">product collections</p>
+              <h1 className="text-4xl font-bold text-foreground mb-3">
+                {categoryMeta ? categoryMeta.title : 'قائمة المنتجات الكاملة'}
+              </h1>
+              <p className="text-foreground/70 max-w-2xl">
+                {categoryMeta
+                  ? categoryMeta.description
+                  : 'استكشف مجموعاتنا المتنوعة من الأثاث والإكسسوارات المصممة بروح اسكندنافية معاصرة.'}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const stored = localStorage.getItem('wonderland_custom_products');
+                const customProducts = stored ? JSON.parse(stored) : [];
+                setProducts(Array.isArray(customProducts) ? customProducts : []);
+              }}
+              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
+            >
+              🔄 تحديث المنتجات
+            </button>
+          </div>
+          <p className="text-xs text-foreground/50">العدد: {products.length} منتج</p>
         </header>
 
         <ProductsFilterTabs options={filterOptions} />
