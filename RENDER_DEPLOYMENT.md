@@ -107,6 +107,61 @@ NEXT_PUBLIC_API_URL=https://wonderland-f0vb.onrender.com
 5. ✅ إضافة قدرة حذف الصور
 6. ✅ تحسين الأداء والتخزين المؤقت
 
+## 🔒 حل مشكلة Google OAuth على Render (Production)
+
+### المشكلة:
+```
+✅ localhost:3000 - تسجيل الدخول يعمل
+❌ Render/production - "تم حظر المحاولات" / Restricted Access
+```
+
+### الحل (4 خطوات):
+
+#### 1️⃣ تفعيل Google+ API:
+1. اذهب إلى: https://console.cloud.google.com/
+2. اختر project: `project-1021477358452`
+3. **APIs & Services** → **Library**
+4. ابحث عن: `Google+ API` وفعّله (**Enable**)
+
+#### 2️⃣ تحديث OAuth Consent Screen:
+1. **APIs & Services** → **OAuth consent screen**
+2. اختر: **External** (إذا لم تختره)
+3. في **Authorized domains**:
+   - اضغط: **Add domain**
+   - أضف: `wonderland-app.onrender.com`
+   - **Save and Continue**
+4. تأكد من وجود scopes: `email`, `profile`, `openid`
+
+#### 3️⃣ تحديث OAuth 2.0 Credentials:
+1. **APIs & Services** → **Credentials**
+2. اختر: **OAuth 2.0 Client ID**
+3. اضغط: **Edit**
+4. في **Authorized JavaScript origins** أضف:
+   ```
+   https://wonderland-app.onrender.com
+   ```
+5. في **Authorized redirect URIs** أضف:
+   ```
+   https://wonderland-app.onrender.com/complete-profile
+   ```
+6. **Save**
+
+#### 4️⃣ تحديث Render Environment:
+1. اذهب إلى: https://dashboard.render.com/
+2. اختر: **wonderland**
+3. **Environment** → تأكد من وجود:
+   ```
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=1021477358452-rl84k4sosoogajgttclflj15lltf5is5.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=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
+   NEXT_PUBLIC_API_URL=https://wonderland-app.onrender.com
+   ```
+4. **Save Changes** و **Deploy**
+
+### ✅ بعد الإتمام:
+- امسح الكاش: `Ctrl + Shift + Delete`
+- جرّب على: `https://wonderland-app.onrender.com/login`
+- يجب أن يعمل بدون "Restricted Access"
+
 ## الدعم
 
 في حالة واجهت مشاكل:
@@ -114,3 +169,4 @@ NEXT_PUBLIC_API_URL=https://wonderland-f0vb.onrender.com
 2. تأكد من جميع متغيرات البيئة معرّفة بشكل صحيح
 3. أعد نشر المشروع
 4. امسح ذاكرة التخزين المؤقت للمتصفح (Ctrl+Shift+Del)
+5. تأكد من تفعيل Google+ API و OAuth Consent Screen
