@@ -278,7 +278,7 @@ export default function Room3DViewer({
       />
       <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs p-3 rounded max-w-xs">
         <p>• اسحب العناصر لتحريكها</p>
-        <p>• استخدم الماوس للدوران والتكبير</p>
+        <p>• استخدم الماوس او اللمس للدوران والتكبير</p>
       </div>
     </div>
   );
