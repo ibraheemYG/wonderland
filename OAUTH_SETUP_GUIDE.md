@@ -42,8 +42,8 @@ http://127.0.0.1:3000
 
 للإنتاج على Render:
 ```
-https://wonderland-app.onrender.com
-https://www.wonderland-app.onrender.com
+https://wonderland-f0vb.onrender.com
+https://www.wonderland-f0vb.onrender.com
 ```
 
 ---
@@ -63,8 +63,8 @@ http://127.0.0.1:3000/complete-profile
 
 للإنتاج على Render:
 ```
-https://wonderland-app.onrender.com/complete-profile
-https://www.wonderland-app.onrender.com/complete-profile
+https://wonderland-f0vb.onrender.com/complete-profile
+https://www.wonderland-f0vb.onrender.com/complete-profile
 ```
 
 ---
@@ -169,7 +169,7 @@ GOOGLE_CLIENT_SECRET=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
 http://localhost:3000/login
 
 # اختبر على Render (بعد الـ deploy)
-https://wonderland-app.onrender.com/login
+https://wonderland-f0vb.onrender.com/login
 ```
 
 كلا النطاقين يجب أن يعملا بدون مشاكل oauth.

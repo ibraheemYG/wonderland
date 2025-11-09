@@ -128,7 +128,7 @@ NEXT_PUBLIC_API_URL=https://wonderland-f0vb.onrender.com
 2. اختر: **External** (إذا لم تختره)
 3. في **Authorized domains**:
    - اضغط: **Add domain**
-   - أضف: `wonderland-app.onrender.com`
+   - أضف: `wonderland-f0vb.onrender.com`
    - **Save and Continue**
 4. تأكد من وجود scopes: `email`, `profile`, `openid`
 
@@ -138,11 +138,11 @@ NEXT_PUBLIC_API_URL=https://wonderland-f0vb.onrender.com
 3. اضغط: **Edit**
 4. في **Authorized JavaScript origins** أضف:
    ```
-   https://wonderland-app.onrender.com
+   https://wonderland-f0vb.onrender.com
    ```
 5. في **Authorized redirect URIs** أضف:
    ```
-   https://wonderland-app.onrender.com/complete-profile
+   https://wonderland-f0vb.onrender.com/complete-profile
    ```
 6. **Save**
 
@@ -153,13 +153,13 @@ NEXT_PUBLIC_API_URL=https://wonderland-f0vb.onrender.com
    ```
    NEXT_PUBLIC_GOOGLE_CLIENT_ID=1021477358452-rl84k4sosoogajgttclflj15lltf5is5.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=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
-   NEXT_PUBLIC_API_URL=https://wonderland-app.onrender.com
+   NEXT_PUBLIC_API_URL=https://wonderland-f0vb.onrender.com
    ```
 4. **Save Changes** و **Deploy**
 
 ### ✅ بعد الإتمام:
 - امسح الكاش: `Ctrl + Shift + Delete`
-- جرّب على: `https://wonderland-app.onrender.com/login`
+- جرّب على: `https://wonderland-f0vb.onrender.com/login`
 - يجب أن يعمل بدون "Restricted Access"
 
 ## الدعم
