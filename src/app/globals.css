@@ -2,23 +2,23 @@
 
 :root {
   --background: 0 0% 100%; /* White */
-  --foreground: 0 0% 20%; /* #333333 */
-  --primary: 240 50% 30%; /* Navy Blue */
+  --foreground: 0 0% 15%; /* #252525 - أغمق قليلاً */
+  --primary: 210 100% 50%; /* Bright Blue - أفضل ظهور في الوضع الفاتح */
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96%; /* #F5F5F5 */
-  --secondary-foreground: 0 0% 10%;
-  --accent: 240 50% 30%;
+  --secondary: 0 0% 93%; /* #EEEEEE - أفتح قليلاً */
+  --secondary-foreground: 0 0% 15%;
+  --accent: 210 100% 50%;
   --accent-foreground: 0 0% 100%;
 }
 
 .dark {
   --background: 0 0% 8%;
   --foreground: 0 0% 98%;
-  --primary: 240 50% 40%;
+  --primary: 210 100% 55%; /* Bright Blue أفتح */
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 12%;
+  --secondary: 0 0% 15%; /* أفتح قليلاً */
   --secondary-foreground: 0 0% 98%;
-  --accent: 240 50% 40%;
+  --accent: 210 100% 55%;
   --accent-foreground: 0 0% 100%;
 }
 
@@ -86,6 +86,29 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Select and Input styling for better visibility */
+  select, input[type="text"], input[type="email"], input[type="number"] {
+    color: hsl(var(--foreground));
+  }
+
+  /* Light mode select/input enhancement */
+  :root select, :root input[type="text"], :root input[type="email"], :root input[type="number"] {
+    background-color: #FFFFFF;
+    border-color: hsl(var(--primary));
+  }
+
+  /* Dark mode select/input enhancement */
+  .dark select, .dark input[type="text"], .dark input[type="email"], .dark input[type="number"] {
+    background-color: hsl(var(--secondary));
+    border-color: hsl(var(--primary));
+  }
+
+  /* Option styling */
+  option {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
   }
 }
 

@@ -33,10 +33,10 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
           <Link
             key={option.label}
             href={href}
-            className={`px-5 py-2 rounded-full border transition-colors ${
+            className={`px-5 py-2 rounded-full border-2 transition-colors ${
               isActive
                 ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-secondary text-foreground border-transparent hover:bg-primary/10'
+                : 'bg-background text-foreground border-primary/30 hover:border-primary/60 hover:bg-secondary'
             }`}
           >
             {option.label}
