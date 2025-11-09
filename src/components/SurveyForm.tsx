@@ -14,12 +14,10 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    country: '',
     budget: '',
     preferences: [] as string[],
   });
 
-  const countries = ['العراق', 'السعودية', 'الإمارات', 'الكويت', 'قطر', 'البحرين', 'عمان', 'اليمن', 'سوريا', 'لبنان', 'الأردن', 'فلسطين', 'مصر', 'السودان'];
   const budgets = ['أقل من 500', '500 - 1000', '1000 - 2000', '2000 - 5000', 'أكثر من 5000'];
   const preferences = ['أرائك', 'أسرة', 'مطبخ', 'حمام', 'ديكور', 'أثاث', 'أجهزة', 'خصومات'];
 
@@ -33,7 +31,7 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
   };
 
   const handleSubmit = () => {
-    if (step === 1 && formData.country && formData.budget) {
+    if (step === 1 && formData.budget) {
       setStep(2);
     } else if (step === 2 && formData.preferences.length > 0) {
       const surveyData = {
@@ -96,21 +94,6 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
                 />
               </div>
 
-              {/* Country */}
-              <div>
-                <label className="block text-white/70 text-sm font-medium mb-2">الدولة</label>
-                <select
-                  value={formData.country}
-                  onChange={(e) => setFormData({...formData, country: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                >
-                  <option value="">اختر دولتك</option>
-                  {countries.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
-              </div>
-
               {/* Budget */}
               <div>
                 <label className="block text-white/70 text-sm font-medium mb-2">الميزانية (د.ع)</label>
@@ -128,7 +111,7 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
 
               <button
                 onClick={handleSubmit}
-                disabled={!formData.country || !formData.budget}
+                disabled={!formData.budget}
                 className="w-full py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 text-white rounded-lg transition font-semibold"
               >
                 التالي ({step}/2)
