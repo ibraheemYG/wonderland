@@ -9,7 +9,13 @@ interface SurveyFormProps {
 }
 
 export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+  
+  // إخفاء الاستبيان للإدمن
+  if (isAdmin()) {
+    return null;
+  }
+
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: user?.name || '',
