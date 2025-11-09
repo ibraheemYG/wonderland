@@ -6,6 +6,7 @@ import ProductGallery from '@/components/ProductGallery';
 import { formatIQDFromUSD } from '@/utils/currency';
 import { useRouter } from 'next/navigation';
 
+// مكون لعرض تفاصيل المنتج من localStorage
 interface Product {
   id: string;
   name: string;
