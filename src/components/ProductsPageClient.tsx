@@ -83,11 +83,6 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
     };
 
     loadProducts();
-    
-    // إعادة محاولة التحميل كل 2 ثانية
-    const interval = setInterval(loadProducts, 2000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   const filteredProducts = selectedCategory
