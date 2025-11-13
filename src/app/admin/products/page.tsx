@@ -15,6 +15,9 @@ interface Product {
   discount?: number;
   description: string;
   images: string[];
+  mainImageIndex?: number;
+  videos?: string[];
+  threeD?: string;
 }
 
 const CATEGORIES = ['sofa', 'bed', 'kitchen', 'bathroom', 'decorations', 'furnishings', 'appliances', 'sale'];
@@ -32,6 +35,9 @@ export default function ProductsPage() {
     discount: 0,
     description: '',
     images: [] as string[],
+    mainImageIndex: 0,
+    videos: [] as string[],
+    threeD: '',
   });
 
   useEffect(() => {
@@ -46,10 +52,19 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (mounted && isAdmin()) {
-      const stored = localStorage.getItem('wonderland_products');
-      if (stored) {
-        setProducts(JSON.parse(stored));
-      }
+      const load = async () => {
+        try {
+          const res = await fetch('/api/products');
+          if (res.ok) {
+            const json = await res.json();
+            setProducts(json.data || []);
+            return;
+          }
+        } catch (err) {
+          console.error('Failed to load products from API:', err);
+        }
+      };
+      load();
     }
   }, [mounted, isAdmin]);
 
@@ -61,59 +76,117 @@ export default function ProductsPage() {
     setForm(prev => ({
       ...prev,
       images: [...prev.images, url],
+      mainImageIndex: prev.images.length === 0 ? 0 : prev.mainImageIndex,
     }));
+  };
+
+  const handleAddVideo = (url: string) => {
+    setForm(prev => ({ ...prev, videos: [...prev.videos, url] }));
+  };
+
+  const handleAdd3D = (url: string) => {
+    setForm(prev => ({ ...prev, threeD: url }));
   };
 
   const handleRemoveImage = (index: number) => {
     setForm(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
+      mainImageIndex: prev.mainImageIndex >= prev.images.length - 1 ? 0 : prev.mainImageIndex,
     }));
+  };
+
+  const setMainImage = (index: number) => {
+    setForm(prev => ({ ...prev, mainImageIndex: index }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!form.name || form.images.length === 0) {
       alert('يرجى ملء جميع الحقول المطلوبة وإضافة صورة واحدة على الأقل');
       return;
     }
 
-    const newProduct: Product = {
-      id: `product_${Date.now()}`,
-      name: form.name,
-      category: form.category,
-      price: parseFloat(form.price.toString()),
-      quantity: parseInt(form.quantity.toString()),
-      discount: form.discount ? parseFloat(form.discount.toString()) : 0,
-      description: form.description,
-      images: form.images,
-    };
+    (async () => {
+      try {
+        const payload = {
+          name: form.name,
+          category: form.category,
+          price: parseFloat(form.price.toString()),
+          quantity: parseInt(form.quantity.toString()),
+          discount: form.discount ? parseFloat(form.discount.toString()) : 0,
+          description: form.description,
+          images: form.images,
+          mainImageIndex: form.mainImageIndex,
+          videos: form.videos,
+          threeD: form.threeD,
+        };
 
-    const updated = [...products, newProduct];
-    setProducts(updated);
-    localStorage.setItem('wonderland_products', JSON.stringify(updated));
-    
-    // إعادة تعيين النموذج
-    setForm({
-      name: '',
-      category: 'sofa',
-      price: 0,
-      quantity: 0,
-      discount: 0,
-      description: '',
-      images: [],
-    });
-    
-    alert('✅ تم إضافة المنتج بنجاح!');
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const json = await res.json();
+        if (!res.ok) {
+          throw new Error(json.message || 'Failed to save product');
+        }
+
+        const saved = json.data;
+        // normalize saved product
+        const productItem: Product = {
+          id: saved.id || saved._id || `product_${Date.now()}`,
+          name: saved.name,
+          category: saved.category,
+          price: saved.price,
+          quantity: saved.quantity || 0,
+          discount: saved.originalPrice ? saved.originalPrice : 0,
+          description: saved.description || '',
+          images: saved.images || (saved.imageUrl ? [saved.imageUrl] : []),
+          mainImageIndex: saved.mainImageIndex || 0,
+          videos: saved.videos || [],
+          threeD: saved.threeD || '',
+        };
+
+        setProducts(prev => [productItem, ...prev]);
+
+        // إعادة تعيين النموذج
+        setForm({
+          name: '',
+          category: 'sofa',
+          price: 0,
+          quantity: 0,
+          discount: 0,
+          description: '',
+          images: [],
+          mainImageIndex: 0,
+          videos: [],
+          threeD: '',
+        });
+
+        alert('✅ تم إضافة المنتج بنجاح!');
+      } catch (err: any) {
+        console.error('Failed to save product:', err);
+        alert('❌ فشل في حفظ المنتج: ' + (err.message || err));
+      }
+    })();
   };
 
   const handleDeleteProduct = (id: string) => {
-    if (confirm('هل تأكد من حذف هذا المنتج؟')) {
-      const updated = products.filter(p => p.id !== id);
-      setProducts(updated);
-      localStorage.setItem('wonderland_products', JSON.stringify(updated));
-    }
+    if (!confirm('هل تأكد من حذف هذا المنتج؟')) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || 'Failed to delete');
+        setProducts(prev => prev.filter(p => p.id !== id));
+      } catch (err) {
+        console.error('Failed to delete product:', err);
+        alert('❌ فشل في حذف المنتج');
+      }
+    })();
   };
 
   return (
@@ -212,6 +285,8 @@ export default function ProductsPage() {
             <ImageUpload
               onUploadSuccess={handleAddImage}
               folder="wonderland/products"
+              multiple={true}
+              accept="image/*"
             />
 
             {/* Uploaded Images */}
@@ -224,20 +299,57 @@ export default function ProductsPage() {
                       <img
                         src={img}
                         alt={`Product ${idx}`}
-                        className="w-full h-40 object-cover rounded-lg border border-white/20"
+                        className={`w-full h-40 object-cover rounded-lg border ${form.mainImageIndex === idx ? 'border-green-400' : 'border-white/20'}`}
                       />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded opacity-0 group-hover:opacity-100 transition"
-                      >
-                        ✕
-                      </button>
+                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                        <button
+                          type="button"
+                          onClick={() => setMainImage(idx)}
+                          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                          title="اجعل هذه الصورة رئيسية"
+                        >
+                          ★
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                          title="حذف"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Video Upload */}
+            <div className="mt-8">
+              <h3 className="text-white/70 text-sm font-medium mb-4">فيديوهات المنتج ({form.videos.length})</h3>
+              <ImageUpload onUploadSuccess={handleAddVideo} folder="wonderland/products/videos" accept="video/*" />
+              {form.videos.length > 0 && (
+                <div className="mt-4 grid grid-cols-1 gap-4">
+                  {form.videos.map((v, i) => (
+                    <video key={i} src={v} controls className="w-full h-48 object-cover rounded-lg" />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 3D Upload */}
+            <div className="mt-8">
+              <h3 className="text-white/70 text-sm font-medium mb-4">ملف ثلاثي الأبعاد (GLB/GLTF/OBJ)</h3>
+              <ImageUpload onUploadSuccess={handleAdd3D} folder="wonderland/products/3d" accept=".glb,.gltf,.obj" />
+              <div className="mt-3 text-white/60 text-sm">
+                {form.threeD ? (
+                  <a href={form.threeD} target="_blank" rel="noreferrer" className="underline">عرض ملف 3D</a>
+                ) : (
+                  <span>لم يتم رفع ملف ثلاثي الأبعاد بعد — سيتم عرض "قريباً 3D" تلقائياً في صفحة المنتج</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -249,13 +361,16 @@ export default function ProductsPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map(product => (
                 <div key={product.id} className="bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition">
-                  {product.images[0] && (
+                  {product.images && product.images.length > 0 && (
                     <img
-                      src={product.images[0]}
+                      src={product.images[(product.mainImageIndex ?? 0) as number] || product.images[0]}
                       alt={product.name}
                       className="w-full h-48 object-cover"
                     />
                   )}
+                  {!product.images || product.images.length === 0 ? (
+                    <div className="w-full h-48 flex items-center justify-center bg-white/5 text-white/60">لا توجد صورة</div>
+                  ) : null}
                   <div className="p-4">
                     <h3 className="text-white font-semibold mb-2">{product.name}</h3>
                     <p className="text-white/60 text-sm mb-3">{product.description.substring(0, 60)}...</p>

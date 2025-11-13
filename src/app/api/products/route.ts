@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // التحقق من البيانات المطلوبة
-    if (!body.name || !body.price || !body.imageUrl || !body.category) {
+    if (!body.name || !body.price || !body.category) {
       return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
+        { success: false, message: 'Missing required fields: name, price, category' },
         { status: 400 }
       );
     }
@@ -48,11 +48,19 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    const imagesArray = Array.isArray(body.images) && body.images.length > 0
+      ? body.images
+      : (body.imageUrl ? [body.imageUrl] : []);
+
     const newProduct = new Product({
       id: body.id || Date.now().toString(),
       name: body.name,
       price: body.price,
-      imageUrl: body.imageUrl,
+      imageUrl: imagesArray[0] || body.imageUrl || undefined,
+      images: imagesArray,
+      mainImageIndex: typeof body.mainImageIndex === 'number' ? body.mainImageIndex : 0,
+      videos: Array.isArray(body.videos) ? body.videos : [],
+      threeD: body.threeD || undefined,
       category: body.category,
       description: body.description,
       rating: body.rating,

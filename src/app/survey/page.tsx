@@ -1,12 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SURVEY_QUESTIONS } from '@/data/survey';
 
 export default function SurveyPage() {
+  const [user, setUser] = useState<any>(null);
+  const [userName, setUserName] = useState('');
+  
+  useEffect(() => {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      try {
+        const userData = JSON.parse(currentUser);
+        setUser(userData);
+      } catch (e) {
+        console.error('Failed to parse user:', e);
+      }
+    }
+  }, []);
+
   const [formData, setFormData] = useState({
-    email: '',
+    email: user?.email || '',
+    username: '',
     furnitureType: [] as string[],
     purchaseFrequency: '',
     onlinePurchase: '',
@@ -78,7 +94,8 @@ export default function SurveyPage() {
       if (data.success) {
         setSuccessMessage('✅ شكراً لك! تم استقبال استبانتك بنجاح');
         setFormData({
-          email: '',
+          email: user?.email || '',
+          username: '',
           furnitureType: [],
           purchaseFrequency: '',
           onlinePurchase: '',
@@ -147,23 +164,45 @@ export default function SurveyPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Question 0: البريد الإلكتروني */}
+          {/* Question 0: البريد الإلكتروني واسم المستخدم */}
           {currentStep === 1 && (
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
-              <h2 className="text-xl font-bold text-white mb-6">
-                📧 ما هو بريدك الإلكتروني؟
-              </h2>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="example@email.com"
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-              <p className="text-white/50 text-sm mt-3">
-                سنستخدم بريدك لمراجعة استبانتك والتواصل معك إذا لزم الأمر
-              </p>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg space-y-4">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-6">
+                  📧 بيانات التواصل
+                </h2>
+              </div>
+              
+              {user?.email ? (
+                <div className="bg-blue-500/20 border border-blue-400 rounded-lg p-4">
+                  <p className="text-white/70 text-sm mb-2">البريد الإلكتروني المسجل:</p>
+                  <p className="text-white font-semibold">{user.email}</p>
+                  <p className="text-white/50 text-xs mt-2">سيتم استخدام هذا البريد في استجابتك</p>
+                </div>
+              ) : (
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-white">البريد الإلكتروني</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="example@email.com"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    required
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-white">اسم المستخدم (اختياري)</label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                  placeholder="اسمك أو لقبك"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
             </div>
           )}
 

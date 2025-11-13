@@ -4,7 +4,11 @@ export interface IProduct extends Document {
   id: string;
   name: string;
   price: number;
-  imageUrl: string;
+  imageUrl?: string;
+  images?: string[];
+  mainImageIndex?: number;
+  videos?: string[];
+  threeD?: string;
   category: 'living-room' | 'bedroom' | 'kitchen' | 'bathroom' | 'decor' | 'appliances' | 'sale' | 'furnishings';
   description?: string;
   rating?: number;
@@ -31,7 +35,22 @@ const ProductSchema = new Schema<IProduct>(
     },
     imageUrl: {
       type: String,
-      required: true,
+      required: false,
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    mainImageIndex: {
+      type: Number,
+      default: 0,
+    },
+    videos: {
+      type: [String],
+      default: [],
+    },
+    threeD: {
+      type: String,
     },
     category: {
       type: String,

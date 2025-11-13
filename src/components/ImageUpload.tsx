@@ -7,12 +7,14 @@ interface ImageUploadProps {
   onUploadSuccess?: (url: string) => void;
   folder?: string;
   multiple?: boolean;
+  accept?: string;
 }
 
 export default function ImageUpload({
   onUploadSuccess,
   folder = 'wonderland',
   multiple = false,
+  accept = 'image/*',
 }: ImageUploadProps) {
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
@@ -21,52 +23,49 @@ export default function ImageUpload({
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
-
-    const file = files[0];
-    if (!file) return;
-
-    // Validate file size (max 5MB)
-    if (file.size > 5242880) {
-      setError('حجم الملف أكبر من 5MB');
-      return;
-    }
+    if (!files || files.length === 0) return;
 
     setIsUploading(true);
     setError('');
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', folder);
+      // iterate files (support multiple)
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        // Validate file size (max 20MB for video/3D, 5MB for images)
+        const maxSize = accept.startsWith('image') ? 5242880 : 20971520;
+        if (file.size > maxSize) {
+          setError('حجم الملف أكبر من الحد المسموح');
+          continue;
+        }
 
-      if (!response.ok) {
-        throw new Error('فشل رفع الصورة');
-      }
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folder);
 
-      const data = await response.json();
-      const imageUrl = data.secure_url;
-      
-      setUploadedImage(imageUrl);
-      setIsUploading(false);
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (onUploadSuccess) {
-        onUploadSuccess(imageUrl);
-      }
+        if (!response.ok) {
+          console.error('Upload failed for file', file.name);
+          continue;
+        }
 
-      // Reset input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        const data = await response.json();
+        const url = data.secure_url;
+
+        setUploadedImage(url);
+        if (onUploadSuccess) onUploadSuccess(url);
       }
     } catch (err) {
-      setIsUploading(false);
-      setError('فشل رفع الصورة. حاول مرة أخرى.');
+      setError('فشل رفع الملف. حاول مرة أخرى.');
       console.error('Upload error:', err);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -75,7 +74,8 @@ export default function ImageUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={accept}
+        multiple={multiple}
         onChange={handleFileChange}
         className="hidden"
         disabled={isUploading}
@@ -86,7 +86,7 @@ export default function ImageUpload({
         className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg transition font-semibold disabled:opacity-50"
         disabled={isUploading}
       >
-        {isUploading ? '⏳ جاري الرفع...' : '📤 رفع صورة'}
+        {isUploading ? '⏳ جاري الرفع...' : '📤 رفع ملف'}
       </button>
 
       {error && (
