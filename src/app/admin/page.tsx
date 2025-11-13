@@ -109,7 +109,25 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    setProducts(loadCustomProducts());
+    // تحميل المنتجات من API MongoDB
+    const loadProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const result = await response.json();
+          setProducts(result.data || []);
+          console.log('✅ Products loaded from MongoDB:', result.data?.length || 0);
+        } else {
+          // fallback to localStorage إذا فشل API
+          setProducts(loadCustomProducts());
+        }
+      } catch (error) {
+        console.error('Failed to load from API, using localStorage:', error);
+        setProducts(loadCustomProducts());
+      }
+    };
+    
+    loadProducts();
   }, []);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -117,7 +135,7 @@ export default function AdminPage() {
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!formState.name.trim() || !formState.price) {
       setFeedback('الرجاء إدخال اسم المنتج والسعر.');
@@ -129,8 +147,7 @@ export default function AdminPage() {
 
     const preferredImage = formState.imageUrl.trim() || filePreview;
 
-    const newProduct: ProductRecord = {
-      id: Date.now().toString(),
+    const newProduct = {
       name: formState.name,
       price: Number(formState.price),
       imageUrl:
@@ -141,38 +158,67 @@ export default function AdminPage() {
       isCustom: true,
     };
 
-    setProducts((prev) => {
-      const updated = [newProduct, ...prev];
-      persistCustomProducts(updated);
-      return updated;
-    });
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct),
+      });
 
-    setFormState({
-      name: '',
-      price: '',
-      imageUrl: '',
-      category: formState.category,
-      originalPrice: '',
-      rating: '5',
-    });
-    setFilePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      if (response.ok) {
+        const result = await response.json();
+        setProducts((prev) => [result.data, ...prev]);
+        persistCustomProducts([result.data, ...products]); // backup to localStorage
+        
+        setFormState({
+          name: '',
+          price: '',
+          imageUrl: '',
+          category: formState.category,
+          originalPrice: '',
+          rating: '5',
+        });
+        setFilePreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        setFeedback('✅ تم إضافة المنتج بنجاح!');
+      } else {
+        const error = await response.json();
+        setFeedback('❌ ' + error.message);
+      }
+    } catch (error) {
+      console.error('Error creating product:', error);
+      setFeedback('❌ فشل في حفظ المنتج');
     }
-    setFeedback('تم إضافة المنتج بنجاح!');
+
     setIsSubmitting(false);
   };
 
-  const handleDelete = (id: string) => {
-    setProducts((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
-      persistCustomProducts(updated);
-      return updated;
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/products?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setProducts((prev) => {
+          const updated = prev.filter((item) => item.id !== id);
+          persistCustomProducts(updated); // backup to localStorage
+          return updated;
+        });
+        setFeedback('✅ تم حذف المنتج بنجاح!');
+      } else {
+        setFeedback('❌ فشل في حذف المنتج');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      setFeedback('❌ خطأ في الحذف');
+    }
   };
 
   const categoryCounts = useMemo(() => {
-    return products.reduce<Record<ProductCategory, number>>((acc, product) => {
+    const counts = products.reduce<Record<ProductCategory, number>>((acc, product) => {
       acc[product.category] = (acc[product.category] || 0) + 1;
       return acc;
     }, {
@@ -182,8 +228,12 @@ export default function AdminPage() {
       bathroom: 0,
       decor: 0,
       appliances: 0,
+      furnishings: 0,
       sale: 0,
     } as Record<ProductCategory, number>);
+    
+    console.log('📊 Category counts:', counts);
+    return counts;
   }, [products]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

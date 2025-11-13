@@ -60,29 +60,44 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // تحميل المنتجات من localStorage
-    const loadProducts = () => {
+    // تحميل المنتجات من API MongoDB
+    const loadProducts = async () => {
       try {
-        const stored = localStorage.getItem('wonderland_custom_products');
-        console.log('📦 Attempting to load products from localStorage...');
-        console.log('Stored data:', stored);
-        
-        if (stored) {
-          const customProducts = JSON.parse(stored);
-          console.log('✅ Products loaded:', customProducts);
-          setProducts(Array.isArray(customProducts) ? customProducts : []);
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const result = await response.json();
+          const productsData = result.data || [];
+          console.log('✅ Products loaded from API:', productsData.length);
+          setProducts(productsData);
         } else {
-          console.log('⚠️ No products found in localStorage');
-          setProducts([]);
+          console.log('⚠️ API returned error, trying localStorage');
+          const stored = localStorage.getItem('wonderland_custom_products');
+          setProducts(stored ? JSON.parse(stored) : []);
         }
       } catch (error) {
-        console.error('❌ Failed to load products:', error);
-        setProducts([]);
+        console.error('❌ Failed to load from API:', error);
+        // fallback to localStorage
+        const stored = localStorage.getItem('wonderland_custom_products');
+        setProducts(stored ? JSON.parse(stored) : []);
       }
       setIsLoading(false);
     };
 
     loadProducts();
+
+    // مراقبة تغييرات localStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'wonderland_custom_products') {
+        console.log('🔄 Storage changed! Reloading products...');
+        loadProducts();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const filteredProducts = selectedCategory
@@ -120,10 +135,16 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
               </p>
             </div>
             <button
-              onClick={() => {
-                const stored = localStorage.getItem('wonderland_custom_products');
-                const customProducts = stored ? JSON.parse(stored) : [];
-                setProducts(Array.isArray(customProducts) ? customProducts : []);
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/products');
+                  if (response.ok) {
+                    const result = await response.json();
+                    setProducts(result.data || []);
+                  }
+                } catch (error) {
+                  console.error('Failed to refresh:', error);
+                }
               }}
               className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
             >
