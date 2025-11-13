@@ -6,6 +6,7 @@ import { SURVEY_QUESTIONS } from '@/data/survey';
 
 export default function SurveyPage() {
   const [formData, setFormData] = useState({
+    email: '',
     furnitureType: [] as string[],
     purchaseFrequency: '',
     onlinePurchase: '',
@@ -22,7 +23,7 @@ export default function SurveyPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
 
-  const totalSteps = 8;
+  const totalSteps = 9;
 
   // التعامل مع حقول Checkbox
   const handleCheckboxChange = (field: string, value: string) => {
@@ -77,6 +78,7 @@ export default function SurveyPage() {
       if (data.success) {
         setSuccessMessage('✅ شكراً لك! تم استقبال استبانتك بنجاح');
         setFormData({
+          email: '',
           furnitureType: [],
           purchaseFrequency: '',
           onlinePurchase: '',
@@ -145,8 +147,28 @@ export default function SurveyPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Question 1: نوع الأثاث */}
+          {/* Question 0: البريد الإلكتروني */}
           {currentStep === 1 && (
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
+              <h2 className="text-xl font-bold text-white mb-6">
+                📧 ما هو بريدك الإلكتروني؟
+              </h2>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="example@email.com"
+                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+              <p className="text-white/50 text-sm mt-3">
+                سنستخدم بريدك لمراجعة استبانتك والتواصل معك إذا لزم الأمر
+              </p>
+            </div>
+          )}
+
+          {/* Question 1: نوع الأثاث */}
+          {currentStep === 3 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 1️⃣ ما نوع الأثاث الذي تشتريه عادة؟
@@ -171,7 +193,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 2: تكرار الشراء */}
-          {currentStep === 2 && (
+          {currentStep === 3 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 2️⃣ كم مرة تشتري أثاث جديد في السنة؟
@@ -198,7 +220,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 3: الشراء أونلاين */}
-          {currentStep === 3 && (
+          {currentStep === 5 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 3️⃣ هل سبق أن اشتريت أثاث عبر الإنترنت؟
@@ -225,7 +247,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 4: السبب (إذا كانت الإجابة لا) */}
-          {currentStep === 4 && formData.onlinePurchase === 'لا' && (
+          {currentStep === 5 && formData.onlinePurchase === 'لا' && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 4️⃣ لماذا لم تشتر أثاث عبر الإنترنت؟
@@ -241,7 +263,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 5: أكثر قلق */}
-          {(currentStep === 4 && formData.onlinePurchase === 'نعم') || currentStep === 5 && (
+          {(currentStep === 5 && formData.onlinePurchase === 'نعم') || currentStep === 6 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 5️⃣ ما أكثر شيء يقلقك عند الشراء أونلاين؟
@@ -262,7 +284,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 6: التوصيل */}
-          {currentStep === 6 && (
+          {currentStep === 7 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 6️⃣ ما الطريقة المفضلة للتوصيل؟
@@ -289,7 +311,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 7: الدفع والتقسيط */}
-          {currentStep === 7 && (
+          {currentStep === 8 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-white mb-4">
@@ -340,7 +362,7 @@ export default function SurveyPage() {
           )}
 
           {/* Question 8: الأمنيات */}
-          {currentStep === 8 && (
+          {currentStep === 9 && (
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">
                 8️⃣ ما الذي تتمنى وجوده في تطبيق بيع الأثاث؟

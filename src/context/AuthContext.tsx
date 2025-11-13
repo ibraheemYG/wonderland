@@ -93,34 +93,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('currentUser');
   };
 
-  const googleLogin = (userData: Partial<User>) => {
-    // التحقق من كون المستخدم أدمن
-    const isUserAdmin = userData.email && adminList.includes(userData.email);
-    
-    const newUser: User = {
-      id: userData.id || Math.floor(Math.random() * 10000),
-      username: userData.username || userData.email?.split('@')[0] || 'google-user',
-      role: isUserAdmin ? 'admin' : (userData.role || 'user'),
-      name: userData.name || '',
-      email: userData.email,
-      phone: userData.phone,
-      country: userData.country,
-      furniturePreferences: userData.furniturePreferences,
-      googleAuth: true,
-    };
+  const googleLogin = async (userData: Partial<User>) => {
+    try {
+      // التحقق من كون المستخدم أدمن في MongoDB
+      let isUserAdmin = false;
+      if (userData.email) {
+        try {
+          const adminResponse = await fetch('/api/admin');
+          if (adminResponse.ok) {
+            const adminData = await adminResponse.json();
+            const admins = adminData.data || [];
+            isUserAdmin = admins.some((admin: any) => admin.email === userData.email);
+            console.log('Admin check from MongoDB:', isUserAdmin);
+          }
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+        }
+        
+        // fallback إلى localStorage إذا فشل الاتصال
+        if (!isUserAdmin) {
+          isUserAdmin = adminList.includes(userData.email);
+        }
+      }
+      
+      const newUser: User = {
+        id: userData.id || Math.floor(Math.random() * 10000),
+        username: userData.username || userData.email?.split('@')[0] || 'google-user',
+        role: isUserAdmin ? 'admin' : (userData.role || 'user'),
+        name: userData.name || '',
+        email: userData.email,
+        phone: userData.phone,
+        country: userData.country,
+        furniturePreferences: userData.furniturePreferences,
+        googleAuth: true,
+      };
 
-    setUser(newUser);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    
-    // حفظ المستخدم في قائمة جميع المستخدمين
-    const allUsers = getAllUsers();
-    const existingIndex = allUsers.findIndex(u => u.email === newUser.email);
-    if (existingIndex >= 0) {
-      allUsers[existingIndex] = newUser;
-    } else {
-      allUsers.push(newUser);
+      setUser(newUser);
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+      
+      // حفظ المستخدم في قائمة جميع المستخدمين
+      const allUsers = getAllUsers();
+      const existingIndex = allUsers.findIndex(u => u.email === newUser.email);
+      if (existingIndex >= 0) {
+        allUsers[existingIndex] = newUser;
+      } else {
+        allUsers.push(newUser);
+      }
+      localStorage.setItem('wonderland_all_users', JSON.stringify(allUsers));
+    } catch (error) {
+      console.error('Google login error:', error);
     }
-    localStorage.setItem('wonderland_all_users', JSON.stringify(allUsers));
   };
 
   const isAdmin = () => {
