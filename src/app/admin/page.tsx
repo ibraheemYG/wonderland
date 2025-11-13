@@ -167,8 +167,24 @@ export default function AdminPage() {
 
       if (response.ok) {
         const result = await response.json();
-        setProducts((prev) => [result.data, ...prev]);
-        persistCustomProducts([result.data, ...products]); // backup to localStorage
+        const savedProduct = result.data;
+        
+        // تحويل الـ MongoDB format إلى format التطبيق
+        const formattedProduct: ProductRecord = {
+          id: savedProduct._id || savedProduct.id,
+          name: savedProduct.name,
+          price: savedProduct.price,
+          imageUrl: savedProduct.imageUrl,
+          category: savedProduct.category,
+          description: savedProduct.description,
+          rating: savedProduct.rating,
+          originalPrice: savedProduct.originalPrice,
+          isCustom: savedProduct.isCustom || true,
+        };
+        
+        const updatedProducts = [formattedProduct, ...products];
+        setProducts(updatedProducts);
+        persistCustomProducts(updatedProducts);
         
         setFormState({
           name: '',
@@ -185,7 +201,7 @@ export default function AdminPage() {
         setFeedback('✅ تم إضافة المنتج بنجاح!');
       } else {
         const error = await response.json();
-        setFeedback('❌ ' + error.message);
+        setFeedback('❌ ' + (error.message || 'فشل في حفظ المنتج'));
       }
     } catch (error) {
       console.error('Error creating product:', error);

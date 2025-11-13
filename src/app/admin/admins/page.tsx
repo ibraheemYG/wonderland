@@ -51,6 +51,8 @@ export default function AdminsPage() {
     }
 
     setIsSubmitting(true);
+    setFeedback('جاري الاتصال بالخادم...');
+    
     try {
       const response = await fetch('/api/admin', {
         method: 'POST',
@@ -70,10 +72,12 @@ export default function AdminsPage() {
         setFeedback('✅ تم اضافة المسؤول بنجاح!');
       } else {
         const error = await response.json();
-        setFeedback('❌ فشل: ' + error.message);
+        setFeedback('❌ ' + (error.message || 'فشل في الاتصال'));
+        console.error('Error response:', error);
       }
     } catch (error) {
-      setFeedback('❌ خطأ في الاتصال');
+      console.error('Fetch error:', error);
+      setFeedback('❌ خطأ في الاتصال بالخادم. تأكد من أن الخادم يعمل.');
     }
     setIsSubmitting(false);
   };
@@ -95,7 +99,11 @@ export default function AdminsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white text-xl">جاري التحميل...</div>
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">جاري التحميل...</div>
+          <div className="animate-spin w-8 h-8 border-4 border-white/20 border-t-white rounded-full mx-auto"></div>
+          <p className="text-white/60 text-sm mt-4">قد يستغرق الاتصال بـ MongoDB قليلاً...</p>
+        </div>
       </div>
     );
   }
@@ -104,9 +112,17 @@ export default function AdminsPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">� ادارة المسؤولين</h1>
-          <p className="text-white/60">عدد المسؤولين: {admins.length}</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">👥 ادارة المسؤولين</h1>
+            <p className="text-white/60">عدد المسؤولين: {admins.length}</p>
+          </div>
+          <button
+            onClick={loadAdmins}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition"
+          >
+            🔄 تحديث
+          </button>
         </div>
 
         {feedback && (

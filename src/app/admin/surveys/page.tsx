@@ -63,7 +63,11 @@ export default function SurveysPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white text-xl">جاري التحميل...</div>
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">جاري التحميل...</div>
+          <div className="animate-spin w-8 h-8 border-4 border-white/20 border-t-white rounded-full mx-auto"></div>
+          <p className="text-white/60 text-sm mt-4">قد يستغرق الاتصال بـ MongoDB قليلاً...</p>
+        </div>
       </div>
     );
   }
@@ -72,9 +76,17 @@ export default function SurveysPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">📋 الاستبيانات</h1>
-          <p className="text-white/60">عدد الاستبانات: {responses.length}</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">📋 الاستبيانات</h1>
+            <p className="text-white/60">عدد الاستبانات: {responses.length}</p>
+          </div>
+          <button
+            onClick={loadSurveys}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition"
+          >
+            🔄 تحديث
+          </button>
         </div>
 
         {feedback && (
