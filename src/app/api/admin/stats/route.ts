@@ -27,25 +27,29 @@ export async function GET(request: NextRequest) {
     // DB stats
     try {
       const db = mongoose.connection.db;
-      const stats = await db.command({ dbStats: 1, scale: 1 });
-      result.mongo = {
-        dbName: db.databaseName,
-        stats,
-      };
+      if (db) {
+        const stats = await db.command({ dbStats: 1, scale: 1 });
+        result.mongo = {
+          dbName: db.databaseName,
+          stats,
+        };
 
-      // collection counts for important collections
-      const collections = await db.listCollections().toArray();
-      const counts: Record<string, number> = {};
-      for (const c of collections) {
-        try {
-          const coll = db.collection(c.name);
-          const count = await coll.estimatedDocumentCount();
-          counts[c.name] = count;
-        } catch (e) {
-          counts[c.name] = -1;
+        // collection counts for important collections
+        const collections = await db.listCollections().toArray();
+        const counts: Record<string, number> = {};
+        for (const c of collections) {
+          try {
+            const coll = db.collection(c.name);
+            const count = await coll.estimatedDocumentCount();
+            counts[c.name] = count;
+          } catch (e) {
+            counts[c.name] = -1;
+          }
         }
+        result.counts = counts;
+      } else {
+        result.mongo = { error: 'Database connection not available' };
       }
-      result.counts = counts;
     } catch (e) {
       result.mongo = { error: String(e) };
     }
