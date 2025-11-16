@@ -35,25 +35,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [adminList, setAdminList] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('wonderland_admins');
-      if (stored) {
-        return JSON.parse(stored);
+  const [adminList, setAdminList] = useState<string[]>(DEFAULT_ADMINS);
+
+  useEffect(() => {
+    const storedAdmins = localStorage.getItem('wonderland_admins');
+    if (storedAdmins) {
+      try {
+        setAdminList(JSON.parse(storedAdmins));
+      } catch (error) {
+        console.error('Failed to parse stored admins:', error);
       }
     }
-    return DEFAULT_ADMINS;
-  });
 
-  // حفظ قائمة الأدمن
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wonderland_admins', JSON.stringify(adminList));
-    }
-  }, [adminList]);
-
-  // تحميل الجلسة من localStorage عند بدء التطبيق
-  useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       try {
@@ -65,6 +58,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setIsLoading(false);
   }, []);
+
+  // حفظ قائمة الأدمن والمستخدم عند التغيير
+  useEffect(() => {
+    localStorage.setItem('wonderland_admins', JSON.stringify(adminList));
+  }, [adminList]);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('currentUser');
+    }
+  }, [user]);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
@@ -90,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    // localStorage is handled by the useEffect hook
   };
 
   const googleLogin = async (userData: Partial<User>) => {

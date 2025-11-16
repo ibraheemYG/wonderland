@@ -33,20 +33,31 @@ interface AnalyticsContextType {
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
 
 export function AnalyticsProvider({ children }: { children: ReactNode }) {
-  const [analytics, setAnalytics] = useState<Analytics>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('wonderland_analytics');
-      if (stored) {
-        return JSON.parse(stored);
+  const [analytics, setAnalytics] = useState<Analytics>({
+    totalVisitors: 0,
+    activeVisitors: 0,
+    pageViews: {},
+    sessions: [],
+  });
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('wonderland_analytics');
+    if (stored) {
+      try {
+        setAnalytics(JSON.parse(stored));
+      } catch (error) {
+        console.error('Failed to parse stored analytics:', error);
       }
     }
-    return {
-      totalVisitors: 0,
-      activeVisitors: 0,
-      pageViews: {},
-      sessions: [],
-    };
-  });
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem('wonderland_analytics', JSON.stringify(analytics));
+    }
+  }, [analytics, isInitialized]);
 
   const [currentSession, setCurrentSession] = useState<VisitorSession | null>(null);
   const [currentPage, setCurrentPage] = useState<string>('');
@@ -54,6 +65,8 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
 
   // Initialize session
   useEffect(() => {
+    if (!isInitialized) return;
+
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newSession: VisitorSession = {
       id: sessionId,
@@ -77,7 +90,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
         activeVisitors: Math.max(0, prev.activeVisitors - 1),
       }));
     };
-  }, []);
+  }, [isInitialized]);
 
   // Track page view
   const trackPageView = (page: string) => {
@@ -121,10 +134,10 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
 
   // Persist analytics to localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isInitialized) {
       localStorage.setItem('wonderland_analytics', JSON.stringify(analytics));
     }
-  }, [analytics]);
+  }, [analytics, isInitialized]);
 
   const getPageVisits = (page: string): number => {
     return analytics.pageViews[page] || 0;

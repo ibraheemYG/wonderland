@@ -7,24 +7,26 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function AdminDashboard() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading: isAuthLoading } = useAuth();
   const { analytics, getMostVisitedPages, getAverageSessionDuration } = useAnalytics();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // التحقق من أن المستخدم هو أدمن
   useEffect(() => {
-    if (mounted && (!user || !isAdmin())) {
+    if (!isAuthLoading && (!user || !isAdmin())) {
       router.push('/login');
     }
-  }, [user, isAdmin, router, mounted]);
+  }, [user, isAdmin, router, isAuthLoading]);
 
-  if (!mounted || !user || !isAdmin()) {
-    return null;
+  if (isAuthLoading || !user || !isAdmin()) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+          <p className="mt-4 text-lg">جارٍ التحميل...</p>
+        </div>
+      </div>
+    );
   }
 
   const mostVisitedPages = getMostVisitedPages();
