@@ -1,11 +1,8 @@
-import React from 'react';
-import ProductDetailsClient from '@/components/ProductDetailsClient';
+import ProductDetailsPageWrapper from '@/components/product/ProductDetailsPage';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
-export default async function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: idString } = await params;
-  
-  return <ProductDetailsClient productId={idString} />;
+export default function ProductDetailsPage({ params }: { params: { id: string } }) {
+  return <ProductDetailsPageWrapper id={params.id} />;
 }

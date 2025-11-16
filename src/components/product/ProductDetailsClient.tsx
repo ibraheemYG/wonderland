@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import ProductGallery from '@/components/ProductGallery';
+import ProductGallery from '@/components/product/ProductGallery';
 import { formatIQDFromUSD } from '@/utils/currency';
 import { useRouter } from 'next/navigation';
 
-// مكون لعرض تفاصيل المنتج من localStorage
 interface Product {
   id: string;
   name: string;
   price: number;
-  imageUrl: string;
+  imageUrl?: string;
   rating?: number;
   originalPrice?: number;
   category: string;
   description?: string;
   images?: string[];
+  videos?: string[];
+  threeD?: string;
 }
 
 interface ProductDetailsClientProps {
@@ -25,56 +26,68 @@ interface ProductDetailsClientProps {
 
 export default function ProductDetailsClient({ productId }: ProductDetailsClientProps) {
   const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const loadProduct = () => {
+    const controller = new AbortController();
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const stored = localStorage.getItem('wonderland_custom_products');
-        console.log('📦 Loading product with ID:', productId);
-        
-        if (stored) {
-          const products: Product[] = JSON.parse(stored);
-          const found = products.find((p) => p.id === productId);
-          
-          if (found) {
-            console.log('✅ Product found:', found);
-            setProduct(found);
-          } else {
-            console.log('⚠️ Product not found with ID:', productId);
-            setProduct(null);
-          }
-        } else {
-          console.log('⚠️ No products in localStorage');
-          setProduct(null);
+        const res = await fetch(`/api/products?id=${productId}`, { signal: controller.signal });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || 'لم يتم العثور على المنتج');
         }
-      } catch (error) {
-        console.error('❌ Failed to load product:', error);
+        const json = await res.json();
+        setProduct(json.data ?? null);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setError(err.message || 'تعذر تحميل المنتج');
         setProduct(null);
+      } finally {
+        setLoading(false);
       }
-      setIsLoading(false);
     };
 
-    loadProduct();
+    load();
+
+    return () => controller.abort();
   }, [productId]);
 
-  if (isLoading) {
+  const gallery = useMemo(() => {
+    if (product?.images && product.images.length > 0) {
+      return product.images;
+    }
+    if (product?.imageUrl) {
+      return [product.imageUrl];
+    }
+    return [
+      'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800',
+      'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?w=800',
+    ];
+  }, [product]);
+
+  if (loading) {
     return (
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-center py-12">
-          <p className="text-foreground/60">جاري التحميل...</p>
+        <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-foreground/60">جاري تحميل تفاصيل المنتج...</p>
         </div>
       </main>
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center py-12">
-          <h1 className="text-3xl font-bold text-foreground mb-4">المنتج غير موجود</h1>
-          <p className="text-foreground/70 mb-6">عذراً، لم نتمكن من العثور على هذا المنتج.</p>
+        <div className="max-w-lg mx-auto text-center bg-secondary/40 border border-secondary/60 rounded-2xl p-10">
+          <h1 className="text-3xl font-bold text-foreground mb-4">المنتج غير متوفر</h1>
+          <p className="text-foreground/70 mb-6">{error ?? 'عذراً، لم نتمكن من العثور على هذا المنتج.'}</p>
           <Link
             href="/products"
             className="inline-block bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3 px-6 rounded-lg"
@@ -85,12 +98,6 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
       </main>
     );
   }
-
-  const gallery = product.images?.length ? product.images : [
-    product.imageUrl,
-    'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800',
-    'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?w=800',
-  ];
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">

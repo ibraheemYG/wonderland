@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import SurveyForm from './SurveyForm';
+import SurveyForm from '@/components/survey/SurveyForm';
 
 export default function SurveySuggestion() {
   const [showSuggestion, setShowSuggestion] = useState(false);

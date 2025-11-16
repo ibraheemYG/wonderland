@@ -13,63 +13,85 @@ function createProductMesh(
   color?: { r: number; g: number; b: number }
 ): BABYLON.Mesh {
   let mesh: BABYLON.Mesh;
-  
+
   const r = color?.r ?? 0.7;
   const g = color?.g ?? 0.6;
   const b = color?.b ?? 0.5;
 
-  // إنشاء نماذج مختلفة حسب النوع
   if (category === 'living-room') {
-    // أريكة - توب مائل
-    mesh = BABYLON.MeshBuilder.CreateBox(id, {
-      width: dimensions.width,
-      height: dimensions.height * 0.7,
-      depth: dimensions.depth,
-    }, scene);
-    const seat = BABYLON.MeshBuilder.CreateBox(`${id}-seat`, {
-      width: dimensions.width,
-      height: dimensions.height * 0.3,
-      depth: dimensions.depth,
-    }, scene);
+    mesh = BABYLON.MeshBuilder.CreateBox(
+      id,
+      {
+        width: dimensions.width,
+        height: dimensions.height * 0.7,
+        depth: dimensions.depth,
+      },
+      scene
+    );
+    const seat = BABYLON.MeshBuilder.CreateBox(
+      `${id}-seat`,
+      {
+        width: dimensions.width,
+        height: dimensions.height * 0.3,
+        depth: dimensions.depth,
+      },
+      scene
+    );
     seat.parent = mesh;
     seat.position.y = dimensions.height * 0.2;
   } else if (category === 'bedroom') {
-    // سرير - شكل مستطيل أفقي
-    mesh = BABYLON.MeshBuilder.CreateBox(id, {
-      width: dimensions.width,
-      height: dimensions.height * 0.2,
-      depth: dimensions.depth,
-    }, scene);
-    const headboard = BABYLON.MeshBuilder.CreateBox(`${id}-head`, {
-      width: dimensions.width,
-      height: dimensions.height * 0.8,
-      depth: dimensions.depth * 0.1,
-    }, scene);
+    mesh = BABYLON.MeshBuilder.CreateBox(
+      id,
+      {
+        width: dimensions.width,
+        height: dimensions.height * 0.2,
+        depth: dimensions.depth,
+      },
+      scene
+    );
+    const headboard = BABYLON.MeshBuilder.CreateBox(
+      `${id}-head`,
+      {
+        width: dimensions.width,
+        height: dimensions.height * 0.8,
+        depth: dimensions.depth * 0.1,
+      },
+      scene
+    );
     headboard.parent = mesh;
     headboard.position.z = dimensions.depth / 2 + dimensions.depth * 0.05;
   } else if (category === 'kitchen') {
-    // طاولة المطبخ - مركبة من عدة أجزاء
-    mesh = BABYLON.MeshBuilder.CreateBox(id, {
-      width: dimensions.width,
-      height: dimensions.height * 0.8,
-      depth: dimensions.depth,
-    }, scene);
-    const counter = BABYLON.MeshBuilder.CreateBox(`${id}-counter`, {
-      width: dimensions.width * 1.05,
-      height: dimensions.height * 0.2,
-      depth: dimensions.depth * 1.05,
-    }, scene);
+    mesh = BABYLON.MeshBuilder.CreateBox(
+      id,
+      {
+        width: dimensions.width,
+        height: dimensions.height * 0.8,
+        depth: dimensions.depth,
+      },
+      scene
+    );
+    const counter = BABYLON.MeshBuilder.CreateBox(
+      `${id}-counter`,
+      {
+        width: dimensions.width * 1.05,
+        height: dimensions.height * 0.2,
+        depth: dimensions.depth * 1.05,
+      },
+      scene
+    );
     counter.parent = mesh;
     counter.position.y = dimensions.height * 0.4;
   } else if (category === 'decor') {
-    // ديكور - شكل زخرفي (أسطوانة)
-    mesh = BABYLON.MeshBuilder.CreateCylinder(id, {
-      diameter: Math.min(dimensions.width, dimensions.depth),
-      height: dimensions.height,
-      tessellation: 16,
-    }, scene);
+    mesh = BABYLON.MeshBuilder.CreateCylinder(
+      id,
+      {
+        diameter: Math.min(dimensions.width, dimensions.depth),
+        height: dimensions.height,
+        tessellation: 16,
+      },
+      scene
+    );
   } else {
-    // نموذج افتراضي
     mesh = BABYLON.MeshBuilder.CreateBox(id, dimensions, scene);
   }
 
@@ -122,7 +144,6 @@ export default function Room3DViewer({
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0.2, 0.2, 0.25, 1);
 
-    // الكاميرا
     const camera = new BABYLON.ArcRotateCamera(
       'camera',
       -Math.PI / 2,
@@ -138,7 +159,6 @@ export default function Room3DViewer({
     camera.angularSensibilityX = 1000;
     camera.angularSensibilityY = 1000;
 
-    // الإضاءة - تحسين الإضاءة للألوان الحقيقية
     const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
     light1.intensity = 1.0;
     light1.diffuse = new BABYLON.Color3(1, 1, 1);
@@ -147,12 +167,14 @@ export default function Room3DViewer({
     light2.intensity = 0.8;
     light2.position = new BABYLON.Vector3(roomWidth * 0.5, roomHeight * 1.5, roomLength * 0.5);
 
-    // إضاءة نقطية إضافية لتحسين الرؤية
-    const pointLight = new BABYLON.PointLight('pointLight', new BABYLON.Vector3(roomWidth / 2, roomHeight * 0.9, roomLength / 2), scene);
+    const pointLight = new BABYLON.PointLight(
+      'pointLight',
+      new BABYLON.Vector3(roomWidth / 2, roomHeight * 0.9, roomLength / 2),
+      scene
+    );
     pointLight.intensity = 0.5;
     pointLight.range = Math.max(roomWidth, roomLength) * 3;
 
-    // الأرضية مع نسيج أفضل
     const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: roomWidth, height: roomLength }, scene);
     const groundMaterial = new BABYLON.StandardMaterial('groundMat', scene);
     groundMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.65);
@@ -161,30 +183,25 @@ export default function Room3DViewer({
     ground.material = groundMaterial;
     ground.receiveShadows = true;
 
-    // الجدران - ألوان محسّنة وشفافية أقل
     const wallMaterial = new BABYLON.StandardMaterial('wallMat', scene);
     wallMaterial.diffuseColor = new BABYLON.Color3(0.85, 0.85, 0.83);
     wallMaterial.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
     wallMaterial.alpha = 0.85;
 
-    // جدار خلفي
     const backWall = BABYLON.MeshBuilder.CreatePlane('backWall', { width: roomWidth, height: roomHeight }, scene);
     backWall.position = new BABYLON.Vector3(roomWidth / 2, roomHeight / 2, 0);
     backWall.material = wallMaterial;
 
-    // جدار يساري
     const leftWall = BABYLON.MeshBuilder.CreatePlane('leftWall', { width: roomLength, height: roomHeight }, scene);
     leftWall.position = new BABYLON.Vector3(0, roomHeight / 2, roomLength / 2);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.material = wallMaterial;
 
-    // جدار يميني
     const rightWall = BABYLON.MeshBuilder.CreatePlane('rightWall', { width: roomLength, height: roomHeight }, scene);
     rightWall.position = new BABYLON.Vector3(roomWidth, roomHeight / 2, roomLength / 2);
     rightWall.rotation.y = Math.PI / 2;
     rightWall.material = wallMaterial;
 
-    // إضافة العناصر
     elements.forEach((element) => {
       let mesh: BABYLON.Mesh;
 
@@ -198,7 +215,6 @@ export default function Room3DViewer({
         mat.specularPower = 16;
         mesh.material = mat;
       } else {
-        // نافذة
         mesh = BABYLON.MeshBuilder.CreateBox(element.id, element.dimensions, scene);
         const mat = new BABYLON.StandardMaterial(`mat-${element.id}`, scene);
         mat.diffuseColor = new BABYLON.Color3(0.4, 0.6, 0.8);
@@ -208,17 +224,21 @@ export default function Room3DViewer({
         mesh.material = mat;
       }
 
-      mesh.position = new BABYLON.Vector3(element.position.x, element.position.y + element.dimensions.height / 2, element.position.z);
+      mesh.position = new BABYLON.Vector3(
+        element.position.x,
+        element.position.y + element.dimensions.height / 2,
+        element.position.z
+      );
     });
 
-    // السحب والاختيار
     const pointerDown = () => {
       const pickResult = scene.pick(scene.pointerX, scene.pointerY);
-      const hit = (pickResult?.hit as any);
+      const hit = pickResult?.hit as any;
 
       if (hit?.name && !['ground', 'backWall', 'leftWall', 'rightWall'].includes(hit.name)) {
-        // تحقق من أن العنصر ليس باب أو نافذة
-        const isNonDraggable = elements.some(el => (el.type === 'door' || el.type === 'window') && el.id === hit.name);
+        const isNonDraggable = elements.some(
+          (el) => (el.type === 'door' || el.type === 'window') && el.id === hit.name
+        );
         if (isNonDraggable) return;
 
         selectedMeshRef.current = hit;
@@ -227,12 +247,18 @@ export default function Room3DViewer({
         const pointerMove = () => {
           if (!selectedMeshRef.current) return;
           const pickMove = scene.pick(scene.pointerX, scene.pointerY);
-          const moveHit = (pickMove?.hit as any);
+          const moveHit = pickMove?.hit as any;
 
           if (moveHit?.name === 'ground' && pickMove?.pickedPoint) {
             const bounds = selectedMeshRef.current.getBoundingInfo().boundingBox.extendSize;
-            selectedMeshRef.current.position.x = Math.max(bounds.x, Math.min(pickMove.pickedPoint.x, roomWidth - bounds.x));
-            selectedMeshRef.current.position.z = Math.max(bounds.z, Math.min(pickMove.pickedPoint.z, roomLength - bounds.z));
+            selectedMeshRef.current.position.x = Math.max(
+              bounds.x,
+              Math.min(pickMove.pickedPoint.x, roomWidth - bounds.x)
+            );
+            selectedMeshRef.current.position.z = Math.max(
+              bounds.z,
+              Math.min(pickMove.pickedPoint.z, roomLength - bounds.z)
+            );
 
             onElementPositionChange?.(selectedMeshRef.current.name, {
               x: selectedMeshRef.current.position.x,
@@ -283,12 +309,3 @@ export default function Room3DViewer({
     </div>
   );
 }
-
-function createElement(
-  scene: BABYLON.Scene,
-  element: RoomElement,
-  meshMap: Map<string, BABYLON.Mesh>
-) {
-  // مبسط
-}
-

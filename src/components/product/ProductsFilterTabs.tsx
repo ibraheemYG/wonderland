@@ -23,11 +23,10 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
   const selectedCategory = searchParams.get('category');
 
   return (
-    <nav className="mb-10 flex flex-wrap gap-3">
-      {options.map((option) => {
+    <nav className="flex-grow overflow-x-auto pb-2">
+      <div className="flex gap-3">
         const isActive =
-          (option.slug && option.slug === selectedCategory) ||
-          (!option.slug && !selectedCategory);
+          (option.slug && option.slug === selectedCategory) || (!option.slug && !selectedCategory);
         const href = option.slug ? `/products?category=${option.slug}` : '/products';
         return (
           <Link
@@ -35,7 +34,7 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
             href={href}
             className={`px-5 py-2 rounded-full border-2 transition-colors ${
               isActive
-                ? 'bg-primary text-primary-foreground border-primary'
+                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30'
                 : 'bg-background text-foreground border-primary/30 hover:border-primary/60 hover:bg-secondary'
             }`}
           >
@@ -43,6 +42,7 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
           </Link>
         );
       })}
+      </div>
     </nav>
   );
 }

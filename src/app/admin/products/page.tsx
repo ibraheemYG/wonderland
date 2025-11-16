@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ImageUpload from '@/components/ImageUpload';
+import ImageUpload from '@/components/common/ImageUpload';
 
 interface Product {
   id: string;

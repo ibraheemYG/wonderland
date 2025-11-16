@@ -29,12 +29,9 @@ export default function ImageUpload({
     setError('');
 
     try {
-      // iterate files (support multiple)
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-
-        // Validate file size (max 20MB for video/3D, 5MB for images)
-        const maxSize = accept.startsWith('image') ? 5242880 : 20971520;
+        const maxSize = accept.startsWith('image') ? 5 * 1024 * 1024 : 20 * 1024 * 1024;
         if (file.size > maxSize) {
           setError('حجم الملف أكبر من الحد المسموح');
           continue;
@@ -58,7 +55,7 @@ export default function ImageUpload({
         const url = data.secure_url;
 
         setUploadedImage(url);
-        if (onUploadSuccess) onUploadSuccess(url);
+        onUploadSuccess?.(url);
       }
     } catch (err) {
       setError('فشل رفع الملف. حاول مرة أخرى.');
@@ -99,12 +96,7 @@ export default function ImageUpload({
         <div className="mt-6">
           <p className="text-white/70 text-sm mb-2">الصورة المرفوعة:</p>
           <div className="relative w-full h-64 rounded-lg overflow-hidden border border-white/20">
-            <Image
-              src={uploadedImage}
-              alt="Uploaded"
-              fill
-              className="object-cover"
-            />
+            <Image src={uploadedImage} alt="Uploaded" fill className="object-cover" />
           </div>
           <p className="text-white/50 text-xs mt-2 break-all">{uploadedImage}</p>
         </div>

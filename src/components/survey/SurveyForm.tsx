@@ -1,0 +1,219 @@
+'use client';
+
+import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+
+interface SurveyFormProps {
+  onClose: () => void;
+  onSubmit?: (data: any) => void;
+}
+
+const budgets = ['أقل من 500', '500 - 1000', '1000 - 2000', '2000 - 5000', 'أكثر من 5000'];
+const preferences = ['أرائك', 'أسرة', 'مطبخ', 'حمام', 'ديكور', 'أثاث', 'أجهزة', 'خصومات'];
+
+export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
+  const { user, isAdmin } = useAuth();
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    budget: '',
+    preferences: [] as string[],
+  });
+
+  if (isAdmin()) {
+    return null;
+  }
+
+  const handlePreferenceToggle = (pref: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferences: prev.preferences.includes(pref)
+        ? prev.preferences.filter((p) => p !== pref)
+        : [...prev.preferences, pref],
+    }));
+  };
+
+  const handleNext = () => {
+    setError(null);
+    if (!formData.email) {
+      setError('الرجاء إدخال البريد الإلكتروني لإرسال القسيمة.');
+      return;
+    }
+    if (!formData.budget) {
+      setError('اختر ميزانيتك المفضلة للاستمرار.');
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (formData.preferences.length === 0) {
+      setError('اختر تفضيلاً واحداً على الأقل.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        email: formData.email.trim(),
+        budget: formData.budget,
+        furnitureType: formData.preferences,
+        styles: [] as string[],
+        colors: [] as string[],
+        timeline: 'unspecified',
+        appWishlist: `Floating survey by ${formData.name || 'ضيف'}`,
+        name: formData.name,
+        source: 'floating-survey',
+      };
+
+      const res = await fetch('/api/survey/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'فشل في إرسال الاستبيان');
+      }
+
+      const saved = await res.json().catch(() => ({}));
+      onSubmit?.(saved);
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+      }, 1800);
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ غير متوقع');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-white/20 rounded-2xl shadow-2xl max-w-md w-full">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-500 p-6 flex justify-between items-center rounded-t-2xl">
+          <h2 className="text-2xl font-bold text-white">📋 استبيان سريع</h2>
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:bg-white/20 rounded-full p-2 transition"
+            aria-label="إغلاق الاستبيان"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {submitted ? (
+            <div className="text-center space-y-4">
+              <div className="mx-auto h-16 w-16 rounded-full bg-green-500/20 flex items-center justify-center text-3xl">
+                ✅
+              </div>
+              <p className="text-white font-semibold text-lg">شكراً لك! تم حفظ استجابتك.</p>
+              <p className="text-white/70 text-sm">سيصلك كوبون الخصم إلى بريدك خلال دقائق.</p>
+            </div>
+          ) : step === 1 ? (
+            <>
+              <div className="grid gap-4">
+                <div>
+                  <label className="block text-white/70 text-sm font-medium mb-2">الاسم</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-400"
+                    placeholder="اسمك"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-white/70 text-sm font-medium mb-2">البريد الإلكتروني<span className="text-red-400">*</span></label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-400"
+                    placeholder="بريدك@example.com"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-white/70 text-sm font-medium mb-2">الميزانية (د.ع)<span className="text-red-400">*</span></label>
+                  <select
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    required
+                  >
+                    <option value="">اختر الميزانية</option>
+                    {budgets.map((budget) => (
+                      <option key={budget} value={budget}>
+                        {budget}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                onClick={handleNext}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg transition font-semibold"
+              >
+                التالي ({step}/2)
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-white/70">ما هي تفضيلاتك؟ (اختر واحداً أو أكثر)</p>
+              <div className="grid grid-cols-2 gap-2">
+                {preferences.map((pref) => (
+                  <button
+                    key={pref}
+                    onClick={() => handlePreferenceToggle(pref)}
+                    className={`p-2 rounded-lg transition text-sm font-medium ${
+                      formData.preferences.includes(pref)
+                        ? 'bg-blue-600 text-white border border-blue-400'
+                        : 'bg-white/10 text-white/70 border border-white/20 hover:border-white/40'
+                    }`}
+                    type="button"
+                  >
+                    {pref}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition font-semibold border border-white/20"
+                >
+                  رجوع
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="flex-1 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 disabled:opacity-50 text-white rounded-lg transition font-semibold"
+                >
+                  {loading ? 'جارٍ الإرسال...' : 'إرسال ✓'}
+                </button>
+              </div>
+            </>
+          )}
+
+          {error && (
+            <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

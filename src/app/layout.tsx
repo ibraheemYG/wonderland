@@ -5,7 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
-import ClientLayout from "@/components/ClientLayout";
+import ClientLayout from "@/components/layout/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

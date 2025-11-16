@@ -2,14 +2,49 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Product } from '@/models/Product';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    
-    const products = await Product.find().sort({ createdAt: -1 });
-    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const limitParam = searchParams.get('limit');
+    const category = searchParams.get('category');
+
+    if (id) {
+      const product = await Product.findOne({ id });
+      if (!product) {
+        return NextResponse.json(
+          { success: false, message: 'Product not found' },
+          { status: 404 }
+        );
+      }
+
+      console.log('✅ Product fetched by id:', id);
+
+      return NextResponse.json({
+        success: true,
+        data: product,
+      });
+    }
+
+    const query: Record<string, string> = {};
+    if (category) {
+      query.category = category;
+    }
+
+    let cursor = Product.find(query).sort({ createdAt: -1 });
+
+    if (limitParam) {
+      const limit = Number(limitParam);
+      if (!Number.isNaN(limit) && limit > 0) {
+        cursor = cursor.limit(limit);
+      }
+    }
+
+    const products = await cursor;
+
     console.log('✅ Products fetched from MongoDB:', products.length);
-    
+
     return NextResponse.json({
       success: true,
       data: products,

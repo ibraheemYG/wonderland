@@ -3,10 +3,10 @@
 import React, { useEffect, useCallback } from 'react';
 import { useAnalytics } from '@/context/AnalyticsContext';
 import { usePathname } from 'next/navigation';
-import Header from './Header';
-import Footer from './Footer';
-import SideCart from './SideCart';
-import SurveySuggestion from './SurveySuggestion';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import SideCart from '@/components/cart/SideCart';
+import SurveySuggestion from '@/components/survey/SurveySuggestion';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { trackPageView } = useAnalytics();
@@ -14,7 +14,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   const handlePageView = useCallback(() => {
     trackPageView(pathname);
-  }, [pathname]);
+  }, [pathname, trackPageView]);
 
   useEffect(() => {
     handlePageView();

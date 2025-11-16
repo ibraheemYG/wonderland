@@ -30,12 +30,35 @@ export default function AdminDashboard() {
   const mostVisitedPages = getMostVisitedPages();
   const avgDuration = getAverageSessionDuration();
   const [isSmall, setIsSmall] = useState(false);
+  const [remoteStats, setRemoteStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     const onResize = () => setIsSmall(window.innerWidth < 640);
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    // fetch admin stats from server
+    const loadStats = async () => {
+      setLoadingStats(true);
+      try {
+        const res = await fetch('/api/admin/stats');
+        if (res.ok) {
+          const json = await res.json();
+          setRemoteStats(json.data);
+        } else {
+          setRemoteStats({ error: `Status ${res.status}` });
+        }
+      } catch (e) {
+        setRemoteStats({ error: String(e) });
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    loadStats();
   }, []);
 
   return (
@@ -112,7 +135,67 @@ export default function AdminDashboard() {
               )}
             </div>
           </div>
+          
+          {/* Remote Stats */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
+            <h2 className="text-2xl font-bold text-white mb-6">🔍 إحصائيات النظام (الخادم)</h2>
+            {loadingStats ? (
+              <p className="text-white/60">جارٍ جلب البيانات...</p>
+            ) : !remoteStats ? (
+              <p className="text-white/60">لا توجد بيانات</p>
+            ) : remoteStats.error ? (
+              <pre className="text-red-400 text-sm">{JSON.stringify(remoteStats.error)}</pre>
+            ) : (
+              <div className="space-y-3 text-sm text-white/80">
+                <div>
+                  <strong>MongoDB:</strong>
+                  {remoteStats.mongo?.stats ? (
+                    <div className="mt-2 text-xs text-white/70">
+                      <div>قاعدة البيانات: {remoteStats.mongo.dbName}</div>
+                      <div>حجم (bytes): {remoteStats.mongo.stats.storageSize}</div>
+                      <div>عدد الـ collections: {Object.keys(remoteStats.counts || {}).length}</div>
+                      <div>مجموع الوثائق (تقريبي): {String(Object.values(remoteStats.counts || {}).reduce((a: any,b: any)=> typeof a === 'number' && typeof b === 'number' ? a + b : a, 0))}</div>
+                    </div>
+                  ) : (
+                    <div className="text-white/60">لا توجد معلومات عن MongoDB</div>
+                  )}
+                </div>
 
+                <div>
+                  <strong>Cloudinary:</strong>
+                  <div className="mt-2 text-xs text-white/70">
+                    {remoteStats.cloudinary?.available === false ? (
+                      <div>Cloudinary غير مُعدّ</div>
+                    ) : remoteStats.cloudinary?.error ? (
+                      <pre className="text-red-400">{JSON.stringify(remoteStats.cloudinary)}</pre>
+                    ) : (
+                      <div>{JSON.stringify(remoteStats.cloudinary).slice(0, 400)}{String(remoteStats.cloudinary).length > 400 ? '…' : ''}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <strong>Render:</strong>
+                  <div className="mt-2 text-xs text-white/70">
+                    {remoteStats.render?.available === false ? (
+                      <div>Render API key غير مُعدّ</div>
+                    ) : remoteStats.render?.error ? (
+                      <pre className="text-red-400">{JSON.stringify(remoteStats.render)}</pre>
+                    ) : (
+                      <div className="space-y-1">
+                        <div>خدمات: {remoteStats.render.services?.length || 0}</div>
+                        {remoteStats.render.services?.slice(0,3).map((s: any, idx: number) => (
+                          <div key={idx} className="text-xs text-white/60">
+                            • {s.name} — آخر نشر: {s.recentDeploy?.createdAt || 'غير متوفر'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           {/* Quick Actions */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
             <h2 className="text-2xl font-bold text-white mb-6">⚡ الإجراءات السريعة</h2>

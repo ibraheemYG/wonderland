@@ -1,13 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
-import SofaIcon from './icons/SofaIcon';
-import KitchenIcon from './icons/KitchenIcon';
-import BedIcon from './icons/BedIcon';
-import BathIcon from './icons/BathIcon';
-import DecorIcon from './icons/DecorIcon';
-import ApplianceIcon from './icons/ApplianceIcon';
-import SaleIcon from './icons/SaleIcon';
-import FurnishingsIcon from './icons/FurnishingsIcon';
+import SofaIcon from '@/components/icons/SofaIcon';
+import KitchenIcon from '@/components/icons/KitchenIcon';
+import BedIcon from '@/components/icons/BedIcon';
+import BathIcon from '@/components/icons/BathIcon';
+import DecorIcon from '@/components/icons/DecorIcon';
+import ApplianceIcon from '@/components/icons/ApplianceIcon';
+import SaleIcon from '@/components/icons/SaleIcon';
+import FurnishingsIcon from '@/components/icons/FurnishingsIcon';
 
 const categories = [
   {

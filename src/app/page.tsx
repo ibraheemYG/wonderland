@@ -1,6 +1,6 @@
-import CategoryGrid from '@/components/CategoryGrid';
-import ShopByRoom from '@/components/ShopByRoom';
-import FeaturedProducts from '@/components/FeaturedProducts';
+import CategoryGrid from '@/components/home/CategoryGrid';
+import ShopByRoom from '@/components/home/ShopByRoom';
+import FeaturedProducts from '@/components/home/FeaturedProducts';
 
 export default function Home() {
   return (
