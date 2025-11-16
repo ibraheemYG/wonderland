@@ -20,7 +20,16 @@ interface Product {
   threeD?: string;
 }
 
-const CATEGORIES = ['sofa', 'bed', 'kitchen', 'bathroom', 'decorations', 'furnishings', 'appliances', 'sale'];
+const CATEGORIES: Array<{ value: string; label: string }> = [
+  { value: 'living-room', label: 'غرف المعيشة' },
+  { value: 'bedroom', label: 'غرف النوم' },
+  { value: 'kitchen', label: 'المطابخ' },
+  { value: 'bathroom', label: 'الحمامات' },
+  { value: 'decor', label: 'الديكور' },
+  { value: 'appliances', label: 'الأجهزة' },
+  { value: 'sale', label: 'عروض خاصة' },
+  { value: 'furnishings', label: 'المفروشات' },
+];
 
 export default function ProductsPage() {
   const { user, isAdmin } = useAuth();
@@ -220,8 +229,8 @@ export default function ProductsPage() {
                   className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
                 >
                   {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
                 </select>
               </div>
 
@@ -284,7 +293,7 @@ export default function ProductsPage() {
             
             <ImageUpload
               onUploadSuccess={handleAddImage}
-              folder="wonderland/products"
+              folder={`wonderland/products/${form.category}`}
               multiple={true}
               accept="image/*"
             />

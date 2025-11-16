@@ -29,6 +29,14 @@ export default function AdminDashboard() {
 
   const mostVisitedPages = getMostVisitedPages();
   const avgDuration = getAverageSessionDuration();
+  const [isSmall, setIsSmall] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsSmall(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -108,20 +116,40 @@ export default function AdminDashboard() {
           {/* Quick Actions */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
             <h2 className="text-2xl font-bold text-white mb-6">⚡ الإجراءات السريعة</h2>
-            <div className="space-y-3">
-              <Link href="/admin/users" className="block w-full p-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg transition font-semibold text-center">
-                👥 إدارة المستخدمين
-              </Link>
-              <Link href="/admin/surveys" className="block w-full p-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white rounded-lg transition font-semibold text-center">
-                📋 إدارة الاستبيانات
-              </Link>
-              <Link href="/admin/products" className="block w-full p-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition font-semibold text-center">
-                🛍️ إدارة المنتجات
-              </Link>
-              <Link href="/admin/admins" className="block w-full p-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg transition font-semibold text-center">
-                🔐 إدارة الأدمن
-              </Link>
-            </div>
+            {!isSmall ? (
+              <div className="space-y-3">
+                <Link href="/admin/users" className="block w-full p-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg transition font-semibold text-center">
+                  👥 إدارة المستخدمين
+                </Link>
+                <Link href="/admin/surveys" className="block w-full p-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white rounded-lg transition font-semibold text-center">
+                  📋 إدارة الاستبيانات
+                </Link>
+                <Link href="/admin/products" className="block w-full p-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition font-semibold text-center">
+                  🛍️ إدارة المنتجات
+                </Link>
+                <Link href="/admin/admins" className="block w-full p-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg transition font-semibold text-center">
+                  🔐 إدارة الأدمن
+                </Link>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-white/70 mb-2">القائمة</label>
+                <select
+                  className="w-full p-3 rounded-lg bg-background border border-white/20 text-white"
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v) router.push(v);
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>اختر إجراء</option>
+                  <option value="/admin/users">👥 إدارة المستخدمين</option>
+                  <option value="/admin/surveys">📋 إدارة الاستبيانات</option>
+                  <option value="/admin/products">🛍️ إدارة المنتجات</option>
+                  <option value="/admin/admins">🔐 إدارة الأدمن</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
