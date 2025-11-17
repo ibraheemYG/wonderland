@@ -11,6 +11,7 @@ const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -61,14 +62,18 @@ const Header = () => {
 
             {/* User Dropdown */}
             {user ? (
-              <div className="relative group">
-                <button className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary">
+              <div className="relative">
+                <button 
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </button>
                 {/* Dropdown Menu */}
-                <div className="absolute right-0 mt-2 w-56 bg-background border border-secondary rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-background border border-secondary rounded-lg shadow-xl transition-all duration-200 z-50">
                   {/* User Info */}
                   <div className="p-4 border-b border-secondary">
                     <p className="text-sm font-semibold text-foreground">{user.name}</p>
@@ -100,13 +105,17 @@ const Header = () => {
                        الاستبيان
                     </Link>
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        logout();
+                        setIsUserMenuOpen(false);
+                      }}
                       className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-secondary hover:text-red-700 transition-colors"
                     >
                       تسجيل الخروج
                     </button>
                   </nav>
                 </div>
+                )}
               </div>
             ) : (
               <Link href="/login" className="hidden sm:block p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary" title="Login">

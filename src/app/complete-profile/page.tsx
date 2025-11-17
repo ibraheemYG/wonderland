@@ -55,8 +55,8 @@ function CompleteProfileContent() {
       }));
     }
 
-    // Redirect if already logged in
-    if (user && !searchParams.get('email')) {
+    // Redirect if already logged in (including users who came from Google OAuth)
+    if (user) {
       router.push('/');
     }
   }, [user, router, searchParams]);

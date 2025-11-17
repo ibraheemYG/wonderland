@@ -32,10 +32,9 @@ const CATEGORIES: Array<{ value: string; label: string }> = [
 ];
 
 export default function ProductsPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
-  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({
     name: '',
     category: 'sofa',
@@ -50,17 +49,13 @@ export default function ProductsPage() {
   });
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && (!user || !isAdmin())) {
+    if (!isAuthLoading && (!user || !isAdmin())) {
       router.push('/login');
     }
-  }, [user, isAdmin, router, mounted]);
+  }, [user, isAdmin, router, isAuthLoading]);
 
   useEffect(() => {
-    if (mounted && isAdmin()) {
+    if (!isAuthLoading && user && isAdmin()) {
       const load = async () => {
         try {
           const res = await fetch('/api/products');
@@ -75,10 +70,17 @@ export default function ProductsPage() {
       };
       load();
     }
-  }, [mounted, isAdmin]);
+  }, [isAuthLoading, user, isAdmin]);
 
-  if (!mounted || !user || !isAdmin()) {
-    return null;
+  if (isAuthLoading || !user || !isAdmin()) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+          <p className="mt-4 text-lg">جارٍ التحميل...</p>
+        </div>
+      </div>
+    );
   }
 
   const handleAddImage = (url: string) => {
