@@ -4,13 +4,13 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 type ProductsPageProps = {
-  searchParams: {
+  searchParams: Promise<{
     category?: string;
-  };
+  }>;
 };
 
-export default function ProductsPage({ searchParams }: ProductsPageProps) {
-  const selectedCategory = searchParams.category;
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const { category } = await searchParams;
 
-  return <ProductsPageClient selectedCategory={selectedCategory} />;
+  return <ProductsPageClient selectedCategory={category} />;
 }
