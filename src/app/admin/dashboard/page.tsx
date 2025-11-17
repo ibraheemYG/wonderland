@@ -10,6 +10,9 @@ export default function AdminDashboard() {
   const { user, isAdmin, isLoading: isAuthLoading } = useAuth();
   const { analytics, getMostVisitedPages, getAverageSessionDuration } = useAnalytics();
   const router = useRouter();
+  const [isSmall, setIsSmall] = useState(false);
+  const [remoteStats, setRemoteStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   // التحقق من أن المستخدم هو أدمن
   useEffect(() => {
@@ -17,23 +20,6 @@ export default function AdminDashboard() {
       router.push('/login');
     }
   }, [user, isAdmin, router, isAuthLoading]);
-
-  if (isAuthLoading || !user || !isAdmin()) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-          <p className="mt-4 text-lg">جارٍ التحميل...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const mostVisitedPages = getMostVisitedPages();
-  const avgDuration = getAverageSessionDuration();
-  const [isSmall, setIsSmall] = useState(false);
-  const [remoteStats, setRemoteStats] = useState<any>(null);
-  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     const onResize = () => setIsSmall(window.innerWidth < 640);
@@ -63,13 +49,27 @@ export default function AdminDashboard() {
     loadStats();
   }, []);
 
+  if (isAuthLoading || !user || !isAdmin()) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+          <p className="mt-4 text-lg">جارٍ التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const mostVisitedPages = getMostVisitedPages();
+  const avgDuration = getAverageSessionDuration();
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-5xl font-bold text-white mb-2">⚙️ لوحة التحكم</h1>
-          <p className="text-white/60">أهلاً بك يا {user.name}</p>
+          <p className="text-white/60">أهلاً بك يا {user?.name || 'المستخدم'}</p>
         </div>
 
         {/* Statistics Cards */}
