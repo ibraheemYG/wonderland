@@ -12,7 +12,8 @@ interface Product {
   name: string;
   price: number;
   originalPrice?: number;
-  imageUrl: string;
+  imageUrl?: string;
+  images?: string[];
   rating?: number;
   category?: string;
 }
@@ -36,7 +37,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="relative w-full aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-800 overflow-hidden">
         <Link href={`/products/${product.id}`} className="block w-full h-full">
           <Image
-            src={product.imageUrl}
+            src={product.images?.[0] || product.imageUrl || '/placeholder.png'}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -80,7 +81,10 @@ const ProductCard = ({ product }: { product: Product }) => {
 
         <div className="space-y-2">
           <button
-            onClick={() => addToCart(product)}
+            onClick={() => addToCart({
+              ...product,
+              imageUrl: product.images?.[0] || product.imageUrl || '/placeholder.png'
+            })}
             className="w-full bg-primary/10 text-primary hover:bg-primary/20 font-semibold py-2.5 px-4 rounded-lg transition-colors duration-300"
           >
             أضف إلى السلة
