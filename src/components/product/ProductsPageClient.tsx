@@ -66,45 +66,43 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   const [refreshing, setRefreshing] = useState(false);
   const [sort, setSort] = useState<SortOption>('newest');
 
-  const fetchProducts = useCallback(
-    async (signal?: AbortSignal, silent = false) => {
-      if (!silent) {
-        setLoading(true);
-        setError(null);
-      }
-      const url = selectedCategory ? `/api/products?category=${selectedCategory}` : '/api/products';
-      try {
-        const res = await fetch(url, { signal });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.message || 'تعذر تحميل المنتجات');
-        }
-        const json = await res.json();
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    const url = selectedCategory ? `/api/products?category=${selectedCategory}` : '/api/products';
+    
+    fetch(url)
+      .then(res => {
+        if (!res.ok) throw new Error('تعذر تحميل المنتجات');
+        return res.json();
+      })
+      .then(json => {
         setProducts(Array.isArray(json.data) ? json.data : []);
-      } catch (err: any) {
-        if (err.name === 'AbortError') return;
+        setLoading(false);
+      })
+      .catch(err => {
         console.error('❌ Failed to load products:', err);
         setError(err.message || 'حدث خطأ غير متوقع');
         setProducts([]);
-      } finally {
-        if (!silent) {
-          setLoading(false);
-        }
-      }
-    },
-    [selectedCategory]
-  );
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchProducts(controller.signal);
-    return () => controller.abort();
-  }, [fetchProducts]);
+        setLoading(false);
+      });
+  }, [selectedCategory]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchProducts(undefined, true);
-    setRefreshing(false);
+    const url = selectedCategory ? `/api/products?category=${selectedCategory}` : '/api/products';
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        setProducts(Array.isArray(json.data) ? json.data : []);
+      }
+    } catch (err) {
+      console.error('Failed to refresh products:', err);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const categoryMeta = selectedCategory ? categoryLabels[selectedCategory] : undefined;
