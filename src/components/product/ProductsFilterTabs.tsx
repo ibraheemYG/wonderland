@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -21,9 +21,30 @@ const defaultOptions: FilterOption[] = [
 export default function ProductsFilterTabs({ options = defaultOptions }: { options?: FilterOption[] }) {
   const searchParams = useSearchParams();
   const selectedCategory = searchParams.get('category');
+  const scope = useRef<HTMLDivElement>(null);
+
+  // Animate tabs on mount / category change
+  useLayoutEffect(() => {
+    if (!scope.current) return;
+    const items = Array.from(scope.current.querySelectorAll('a'));
+    // Fade + slight upward motion
+    items.forEach((el) => el.classList.add('will-change-transform'));
+    import('gsap').then(({ gsap }) => {
+      gsap.fromTo(
+        items,
+        { autoAlpha: 0, y: 12 },
+        { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out' }
+      );
+      // Pulse active tab
+      const active = items.find((el) => el.className.includes('bg-primary'));
+      if (active) {
+        gsap.fromTo(active, { scale: 0.95 }, { scale: 1, duration: 0.4, ease: 'power3.out' });
+      }
+    });
+  }, [selectedCategory]);
 
   return (
-    <nav className="flex-grow overflow-x-auto pb-2">
+    <nav ref={scope} className="flex-grow overflow-x-auto pb-2">
       <div className="flex gap-3">
         {options.map((option) => {
           const isActive =

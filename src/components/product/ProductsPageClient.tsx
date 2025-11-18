@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useLayoutEffect, useRef } from 'react';
 import ProductCard from '@/components/product/ProductCard';
 import ProductsFilterTabs, { FilterOption } from '@/components/product/ProductsFilterTabs';
 import Breadcrumbs, { BreadcrumbItem } from '@/components/common/Breadcrumbs';
@@ -130,6 +130,20 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   }, [categoryMeta, selectedCategory]);
 
   const skeletons = useMemo(() => Array.from({ length: 8 }), []);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Stagger product cards when products list changes
+  useLayoutEffect(() => {
+    if (!gridRef.current || loading) return;
+    const items = Array.from(gridRef.current.children);
+    import('gsap').then(({ gsap }) => {
+      gsap.fromTo(
+        items,
+        { autoAlpha: 0, y: 20 },
+        { autoAlpha: 1, y: 0, duration: 0.55, stagger: 0.07, ease: 'power2.out' }
+      );
+    });
+  }, [sortedProducts, loading, sort, selectedCategory]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -204,7 +218,7 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {sortedProducts.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
