@@ -34,14 +34,15 @@ const ProductCard = ({ product }: { product: Product }) => {
 
   return (
     <div className="group relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
-      <div className="relative w-full aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-800 overflow-hidden">
-        <Link href={`/products/${product.id}`} className="block w-full h-full">
+      <div className="relative w-full h-64 bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center">
+        <Link href={`/products/${product.id}`} className="block w-full h-full relative">
           <Image
             src={product.images?.[0] || product.imageUrl || '/placeholder.png'}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-contain group-hover:scale-105 transition-transform duration-300"
+            priority
           />
         </Link>
         {product.originalPrice && (

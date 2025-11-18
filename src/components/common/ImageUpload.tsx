@@ -98,7 +98,7 @@ export default function ImageUpload({
           <div className="relative w-full h-64 rounded-lg overflow-hidden border border-white/20">
             <Image src={uploadedImage} alt="Uploaded" fill className="object-cover" />
           </div>
-          <p className="text-white/50 text-xs mt-2 break-all">{uploadedImage}</p>
+          <p className="text-white/50 text-xs mt-2 truncate" title={uploadedImage}>{uploadedImage}</p>
         </div>
       )}
     </div>
