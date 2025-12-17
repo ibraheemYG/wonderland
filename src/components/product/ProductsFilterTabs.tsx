@@ -44,8 +44,8 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
   }, [selectedCategory]);
 
   return (
-    <nav ref={scope} className="flex-grow overflow-x-auto pb-2">
-      <div className="flex gap-3">
+    <nav ref={scope} className="flex-grow overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2.5">
         {options.map((option) => {
           const isActive =
             (option.slug && option.slug === selectedCategory) || (!option.slug && !selectedCategory);
@@ -54,10 +54,10 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
             <Link
               key={option.label}
               href={href}
-              className={`px-5 py-2 rounded-full border-2 transition-colors whitespace-nowrap ${
+              className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30'
-                  : 'bg-background text-foreground border-primary/30 hover:border-primary/60 hover:bg-secondary'
+                  ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/30 ring-2 ring-primary/20'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:bg-primary/5 hover:text-primary'
               }`}
             >
               {option.label}

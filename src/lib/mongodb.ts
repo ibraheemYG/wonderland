@@ -20,6 +20,9 @@ async function connectDB() {
   if (!cached.mongoose.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10, // عدد الاتصالات المتزامنة
+      serverSelectionTimeoutMS: 5000, // وقت انتظار اختيار السيرفر
+      socketTimeoutMS: 45000, // وقت انتظار العمليات
     };
 
     cached.mongoose.promise = mongoose

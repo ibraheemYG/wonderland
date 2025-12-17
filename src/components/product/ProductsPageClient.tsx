@@ -148,14 +148,14 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   return (
     <main className="min-h-screen bg-background">
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <header className="mb-10 border-b border-secondary/60 pb-6">
+        <header className="mb-12 pb-8 border-b border-gradient-to-r from-transparent via-primary/20 to-transparent">
           <Breadcrumbs items={breadcrumbItems} />
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-3">
+              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent mb-4">
                 {categoryMeta ? categoryMeta.title : 'قائمة المنتجات الكاملة'}
               </h1>
-              <p className="text-foreground/70 max-w-2xl">
+              <p className="text-foreground/60 max-w-2xl text-lg leading-relaxed">
                 {categoryMeta
                   ? categoryMeta.description
                   : 'استكشف مجموعاتنا المتنوعة من الأثاث والإكسسوارات المصممة بروح اسكندنافية معاصرة.'}
@@ -163,13 +163,23 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
             </div>
             <button
               onClick={handleRefresh}
-              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap disabled:opacity-60"
+              className="px-5 py-2.5 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-primary/90 hover:to-blue-700 transition-all duration-300 whitespace-nowrap disabled:opacity-60 shadow-md hover:shadow-lg hover:shadow-primary/25 flex items-center gap-2"
               disabled={refreshing}
             >
-              {refreshing ? 'يتم التحديث...' : '🔄 تحديث المنتجات'}
+              <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {refreshing ? 'يتم التحديث...' : 'تحديث المنتجات'}
             </button>
           </div>
-          <p className="text-xs text-foreground/50">العدد: {sortedProducts.length} منتج</p>
+          <div className="flex items-center gap-2 text-sm text-foreground/50">
+            <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              {sortedProducts.length} منتج
+            </span>
+          </div>
         </header>
 
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -198,27 +208,45 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
             {skeletons.map((_, idx) => (
               <div
                 key={idx}
-                className="animate-pulse rounded-xl border border-secondary/40 bg-secondary/30 p-4 space-y-4"
+                className="animate-pulse rounded-2xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 overflow-hidden shadow-lg"
               >
-                <div className="aspect-[4/5] rounded-lg bg-secondary/60" />
-                <div className="h-4 bg-secondary/60 rounded" />
-                <div className="h-4 bg-secondary/40 rounded w-3/4" />
+                <div className="h-72 bg-gray-100 dark:bg-gray-800" />
+                <div className="p-5 space-y-4 bg-white dark:bg-gray-900">
+                  <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                  <div className="space-y-2">
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                    <div className="h-5 bg-gray-100 dark:bg-gray-700/60 rounded-lg w-3/4" />
+                  </div>
+                  <div className="flex justify-between items-center pt-2">
+                    <div className="h-7 w-28 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                    <div className="h-6 w-16 bg-gray-100 dark:bg-gray-700/60 rounded-lg" />
+                  </div>
+                  <div className="space-y-2.5 pt-2">
+                    <div className="h-12 bg-primary/20 rounded-xl" />
+                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-secondary bg-secondary/60 p-12 text-center">
-            <h2 className="text-2xl font-semibold text-foreground mb-3">لا توجد منتجات مطابقة حالياً</h2>
-            <p className="text-foreground/70">
+          <div className="rounded-3xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5 p-16 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <svg className="w-10 h-10 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-3">لا توجد منتجات مطابقة حالياً</h2>
+            <p className="text-foreground/60 max-w-md mx-auto">
               نعمل على إضافة قطع جديدة في هذا القسم. يمكنك الاطلاع على الأقسام الأخرى أو العودة لاحقاً.
             </p>
           </div>
         ) : (
-          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
             {sortedProducts.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}

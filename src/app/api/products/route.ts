@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
 
     if (id) {
-      const product = await Product.findOne({ id });
+      // استخدام lean() لأداء أفضل
+      const product = await Product.findOne({ id }).lean();
       if (!product) {
         return NextResponse.json(
           { success: false, message: 'Product not found' },
@@ -32,7 +33,12 @@ export async function GET(request: NextRequest) {
       query.category = category;
     }
 
-    let cursor = Product.find(query).sort({ createdAt: -1 });
+    // استخدام lean() للحصول على كائنات JavaScript عادية بدلاً من Mongoose documents
+    // هذا أسرع بكثير لأنه يتجنب overhead الـ Mongoose
+    let cursor = Product.find(query)
+      .sort({ createdAt: -1 })
+      .select('id name price imageUrl images category rating originalPrice') // جلب الحقول المطلوبة فقط
+      .lean();
 
     if (limitParam) {
       const limit = Number(limitParam);
@@ -45,10 +51,16 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Products fetched from MongoDB:', products.length);
 
-    return NextResponse.json({
+    // إضافة Cache headers لتسريع الطلبات المتكررة
+    const response = NextResponse.json({
       success: true,
       data: products,
     });
+    
+    // Cache لمدة 60 ثانية مع إعادة التحقق في الخلفية
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    
+    return response;
   } catch (error) {
     console.error('❌ Error fetching products:', error);
     return NextResponse.json(
@@ -101,6 +113,16 @@ export async function POST(request: NextRequest) {
       rating: body.rating,
       originalPrice: body.originalPrice,
       isCustom: body.isCustom !== false,
+      // الحقول الجديدة
+      dimensions: body.dimensions ? {
+        width: body.dimensions.width || undefined,
+        height: body.dimensions.height || undefined,
+        depth: body.dimensions.depth || undefined,
+        unit: body.dimensions.unit || 'cm',
+      } : undefined,
+      weight: body.weight || undefined,
+      material: body.material || undefined,
+      color: body.color || undefined,
     });
     
     await newProduct.save();

@@ -57,20 +57,20 @@ export default function FeaturedProducts() {
 
   if (loading) {
     return (
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+      <section className="py-16 sm:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">المنتجات المميزة</h2>
-            <p className="text-foreground/70 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">المنتجات المميزة</h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               نختار لك باقة من أفضل المنتجات التي نعتقد أنك ستحبها.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {skeletons.map((_, idx) => (
-              <div key={idx} className="animate-pulse rounded-xl border border-secondary/40 bg-white/60 p-4 space-y-4">
-                <div className="aspect-[4/5] rounded-lg bg-secondary/40" />
-                <div className="h-4 bg-secondary/30 rounded" />
-                <div className="h-4 bg-secondary/20 rounded w-2/3" />
+              <div key={idx} className="animate-pulse rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 space-y-4">
+                <div className="aspect-[4/5] rounded-lg bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-4 bg-gray-100 dark:bg-gray-700/60 rounded w-2/3" />
               </div>
             ))}
           </div>
@@ -84,11 +84,11 @@ export default function FeaturedProducts() {
   }
 
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+    <section className="py-16 sm:py-24 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground mb-4">المنتجات المميزة</h2>
-          <p className="text-foreground/70 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">المنتجات المميزة</h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             اكتشف تشكيلتنا المختارة بعناية لتمنح منزلك مظهراً جديداً.
           </p>
         </div>

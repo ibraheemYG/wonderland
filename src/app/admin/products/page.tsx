@@ -3,8 +3,15 @@
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import ImageUpload from '@/components/common/ImageUpload';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
+
+interface Dimensions {
+  width?: number;
+  height?: number;
+  depth?: number;
+  unit: 'cm' | 'inch';
+}
 
 interface Product {
   id: string;
@@ -18,6 +25,10 @@ interface Product {
   mainImageIndex?: number;
   videos?: string[];
   threeD?: string;
+  dimensions?: Dimensions;
+  weight?: number;
+  material?: string;
+  color?: string;
 }
 
 const CATEGORIES: Array<{ value: string; label: string }> = [
@@ -35,9 +46,13 @@ export default function ProductsPage() {
   const { user, isAdmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: '',
-    category: 'sofa',
+    category: 'living-room',
     price: 0,
     quantity: 0,
     discount: 0,
@@ -46,6 +61,15 @@ export default function ProductsPage() {
     mainImageIndex: 0,
     videos: [] as string[],
     threeD: '',
+    dimensions: {
+      width: 0,
+      height: 0,
+      depth: 0,
+      unit: 'cm' as 'cm' | 'inch',
+    },
+    weight: 0,
+    material: '',
+    color: '',
   });
 
   useEffect(() => {
@@ -111,7 +135,80 @@ export default function ProductsPage() {
     setForm(prev => ({ ...prev, mainImageIndex: index }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // رفع صور متعددة مع Drag & Drop
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const uploadFiles = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    setUploadProgress(0);
+    const totalFiles = fileArray.length;
+    let uploadedCount = 0;
+
+    for (const file of fileArray) {
+      // التحقق من نوع الملف
+      if (!file.type.startsWith('image/')) {
+        continue;
+      }
+
+      // التحقق من حجم الملف (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`الملف ${file.name} أكبر من 5MB`);
+        continue;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', `wonderland/products/${form.category}`);
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          handleAddImage(data.secure_url);
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+      }
+
+      uploadedCount++;
+      setUploadProgress(Math.round((uploadedCount / totalFiles) * 100));
+    }
+
+    setUploadProgress(0);
+    setDragActive(false);
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      uploadFiles(e.dataTransfer.files);
+    }
+  }, [form.category]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      uploadFiles(e.target.files);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.name || form.images.length === 0) {
@@ -119,46 +216,60 @@ export default function ProductsPage() {
       return;
     }
 
-    (async () => {
-      try {
-        const payload = {
-          name: form.name,
-          category: form.category,
-          price: parseFloat(form.price.toString()),
-          quantity: parseInt(form.quantity.toString()),
-          discount: form.discount ? parseFloat(form.discount.toString()) : 0,
-          description: form.description,
-          images: form.images,
-          mainImageIndex: form.mainImageIndex,
-          videos: form.videos,
-          threeD: form.threeD,
-        };
+    setIsSubmitting(true);
 
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+    try {
+      const payload = {
+        name: form.name,
+        category: form.category,
+        price: parseFloat(form.price.toString()),
+        quantity: parseInt(form.quantity.toString()),
+        discount: form.discount ? parseFloat(form.discount.toString()) : 0,
+        description: form.description,
+        images: form.images,
+        mainImageIndex: form.mainImageIndex,
+        videos: form.videos,
+        threeD: form.threeD,
+        dimensions: {
+          width: form.dimensions.width || undefined,
+          height: form.dimensions.height || undefined,
+          depth: form.dimensions.depth || undefined,
+          unit: form.dimensions.unit,
+        },
+        weight: form.weight || undefined,
+        material: form.material || undefined,
+        color: form.color || undefined,
+      };
 
-        const json = await res.json();
-        if (!res.ok) {
-          throw new Error(json.message || 'Failed to save product');
-        }
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-        const saved = json.data;
-        // normalize saved product
-        const productItem: Product = {
-          id: saved.id || saved._id || `product_${Date.now()}`,
-          name: saved.name,
-          category: saved.category,
-          price: saved.price,
-          quantity: saved.quantity || 0,
-          discount: saved.originalPrice ? saved.originalPrice : 0,
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to save product');
+      }
+
+      const saved = json.data;
+      // normalize saved product
+      const productItem: Product = {
+        id: saved.id || saved._id || `product_${Date.now()}`,
+        name: saved.name,
+        category: saved.category,
+        price: saved.price,
+        quantity: saved.quantity || 0,
+        discount: saved.originalPrice ? saved.originalPrice : 0,
           description: saved.description || '',
           images: saved.images || (saved.imageUrl ? [saved.imageUrl] : []),
           mainImageIndex: saved.mainImageIndex || 0,
           videos: saved.videos || [],
           threeD: saved.threeD || '',
+          dimensions: saved.dimensions,
+          weight: saved.weight,
+          material: saved.material,
+          color: saved.color,
         };
 
         setProducts(prev => [productItem, ...prev]);
@@ -166,7 +277,7 @@ export default function ProductsPage() {
         // إعادة تعيين النموذج
         setForm({
           name: '',
-          category: 'sofa',
+          category: 'living-room',
           price: 0,
           quantity: 0,
           discount: 0,
@@ -175,14 +286,19 @@ export default function ProductsPage() {
           mainImageIndex: 0,
           videos: [],
           threeD: '',
+          dimensions: { width: 0, height: 0, depth: 0, unit: 'cm' },
+          weight: 0,
+          material: '',
+          color: '',
         });
 
         alert('✅ تم إضافة المنتج بنجاح!');
       } catch (err: any) {
         console.error('Failed to save product:', err);
         alert('❌ فشل في حفظ المنتج: ' + (err.message || err));
+      } finally {
+        setIsSubmitting(false);
       }
-    })();
   };
 
   const handleDeleteProduct = (id: string) => {
@@ -201,133 +317,332 @@ export default function ProductsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <h1 className="text-4xl font-bold text-white mb-12">🛍️ إدارة المنتجات</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white">🛍️ إدارة المنتجات</h1>
+          <Link href="/admin/dashboard" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition text-sm">
+            ← لوحة التحكم
+          </Link>
+        </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid lg:grid-cols-2 gap-8 mb-12">
           {/* Add Product Form */}
-          <div className="lg:col-span-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg h-fit sticky top-8">
-            <h2 className="text-2xl font-bold text-white mb-6">➕ إضافة منتج جديد</h2>
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">➕</span>
+              إضافة منتج جديد
+            </h2>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* اسم المنتج */}
               <div>
-                <label className="block text-white/70 text-sm font-medium mb-2">اسم المنتج</label>
+                <label className="block text-white/80 text-sm font-medium mb-2">اسم المنتج *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({...form, name: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-400"
-                  placeholder="مثال: كرسي مريح"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
+                  placeholder="مثال: خزانة ملابس فاخرة"
+                  required
                 />
               </div>
 
+              {/* القسم */}
               <div>
-                <label className="block text-white/70 text-sm font-medium mb-2">القسم</label>
+                <label className="block text-white/80 text-sm font-medium mb-2">القسم *</label>
                 <select
                   value={form.category}
                   onChange={(e) => setForm({...form, category: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-400 transition-all"
                 >
                   {CATEGORIES.map(cat => (
-                      <option key={cat.value} value={cat.value}>{cat.label}</option>
-                    ))}
+                    <option key={cat.value} value={cat.value} className="bg-slate-800">{cat.label}</option>
+                  ))}
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              {/* السعر والكمية */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/70 text-sm font-medium mb-2">السعر</label>
+                  <label className="block text-white/80 text-sm font-medium mb-2">السعر ($) *</label>
                   <input
                     type="number"
-                    value={form.price}
-                    onChange={(e) => setForm({...form, price: e.target.value as any})}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    value={form.price || ''}
+                    onChange={(e) => setForm({...form, price: parseFloat(e.target.value) || 0})}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-400 transition-all"
                     placeholder="0"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div>
-                  <label className="block text-white/70 text-sm font-medium mb-2">الكمية</label>
+                  <label className="block text-white/80 text-sm font-medium mb-2">الكمية</label>
                   <input
                     type="number"
-                    value={form.quantity}
-                    onChange={(e) => setForm({...form, quantity: e.target.value as any})}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    value={form.quantity || ''}
+                    onChange={(e) => setForm({...form, quantity: parseInt(e.target.value) || 0})}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-400 transition-all"
                     placeholder="0"
+                    min="0"
                   />
                 </div>
               </div>
 
+              {/* الخصم */}
               <div>
-                <label className="block text-white/70 text-sm font-medium mb-2">الخصم (%)</label>
+                <label className="block text-white/80 text-sm font-medium mb-2">الخصم (%)</label>
                 <input
                   type="number"
-                  value={form.discount}
-                  onChange={(e) => setForm({...form, discount: e.target.value as any})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  value={form.discount || ''}
+                  onChange={(e) => setForm({...form, discount: parseFloat(e.target.value) || 0})}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-400 transition-all"
                   placeholder="0"
+                  min="0"
+                  max="100"
                 />
               </div>
 
+              {/* الأبعاد */}
+              <div className="p-4 bg-blue-500/10 border border-blue-400/20 rounded-xl">
+                <label className="block text-blue-300 text-sm font-medium mb-3 flex items-center gap-2">
+                  📐 الأبعاد (اختياري)
+                </label>
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div>
+                    <label className="block text-white/60 text-xs mb-1">العرض</label>
+                    <input
+                      type="number"
+                      value={form.dimensions.width || ''}
+                      onChange={(e) => setForm({...form, dimensions: {...form.dimensions, width: parseFloat(e.target.value) || 0}})}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-400"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white/60 text-xs mb-1">الارتفاع</label>
+                    <input
+                      type="number"
+                      value={form.dimensions.height || ''}
+                      onChange={(e) => setForm({...form, dimensions: {...form.dimensions, height: parseFloat(e.target.value) || 0}})}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-400"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white/60 text-xs mb-1">العمق</label>
+                    <input
+                      type="number"
+                      value={form.dimensions.depth || ''}
+                      onChange={(e) => setForm({...form, dimensions: {...form.dimensions, depth: parseFloat(e.target.value) || 0}})}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-400"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                </div>
+                <select
+                  value={form.dimensions.unit}
+                  onChange={(e) => setForm({...form, dimensions: {...form.dimensions, unit: e.target.value as 'cm' | 'inch'}})}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-400"
+                >
+                  <option value="cm" className="bg-slate-800">سنتيمتر (cm)</option>
+                  <option value="inch" className="bg-slate-800">إنش (inch)</option>
+                </select>
+              </div>
+
+              {/* الوزن واللون والخامة */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">الوزن (كجم)</label>
+                  <input
+                    type="number"
+                    value={form.weight || ''}
+                    onChange={(e) => setForm({...form, weight: parseFloat(e.target.value) || 0})}
+                    className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-blue-400"
+                    placeholder="0"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">اللون</label>
+                  <input
+                    type="text"
+                    value={form.color}
+                    onChange={(e) => setForm({...form, color: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-blue-400"
+                    placeholder="أبيض"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">الخامة</label>
+                  <input
+                    type="text"
+                    value={form.material}
+                    onChange={(e) => setForm({...form, material: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-blue-400"
+                    placeholder="خشب"
+                  />
+                </div>
+              </div>
+
+              {/* الوصف */}
               <div>
-                <label className="block text-white/70 text-sm font-medium mb-2">الوصف</label>
+                <label className="block text-white/80 text-sm font-medium mb-2">الوصف</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({...form, description: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-400 resize-none h-24"
-                  placeholder="وصف المنتج..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-400 resize-none h-28 transition-all"
+                  placeholder="وصف تفصيلي للمنتج..."
                 />
               </div>
 
+              {/* زر الإضافة */}
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition font-semibold"
+                disabled={isSubmitting || form.images.length === 0}
+                className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white rounded-xl transition-all font-bold text-lg shadow-lg shadow-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                ✅ إضافة المنتج
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>✅ إضافة المنتج</>
+                )}
               </button>
+              
+              {form.images.length === 0 && (
+                <p className="text-amber-400/80 text-xs text-center">⚠️ يرجى إضافة صورة واحدة على الأقل</p>
+              )}
             </form>
           </div>
 
-          {/* Image Upload */}
-          <div className="lg:col-span-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-white mb-6">📸 الصور</h2>
+          {/* Image Upload Section */}
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">📸</span>
+              الصور والوسائط
+            </h2>
             
-            <ImageUpload
-              onUploadSuccess={handleAddImage}
-              folder={`wonderland/products/${form.category}`}
-              multiple={true}
-              accept="image/*"
-            />
+            {/* Drag & Drop Zone */}
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
+                dragActive 
+                  ? 'border-blue-400 bg-blue-500/20 scale-[1.02]' 
+                  : 'border-white/20 hover:border-white/40 hover:bg-white/5'
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
+              <div className="space-y-4">
+                <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center transition-all ${
+                  dragActive ? 'bg-blue-500/30' : 'bg-white/10'
+                }`}>
+                  <svg className="w-8 h-8 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white/90 font-medium">اسحب الصور هنا أو انقر للاختيار</p>
+                  <p className="text-white/50 text-sm mt-1">PNG, JPG, WEBP حتى 5MB لكل صورة</p>
+                </div>
+              </div>
 
-            {/* Uploaded Images */}
+              {/* Upload Progress */}
+              {uploadProgress > 0 && (
+                <div className="absolute inset-0 bg-slate-900/80 rounded-2xl flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto relative">
+                      <svg className="w-20 h-20 transform -rotate-90">
+                        <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="4" fill="none" className="text-white/10" />
+                        <circle 
+                          cx="40" cy="40" r="36" 
+                          stroke="currentColor" 
+                          strokeWidth="4" 
+                          fill="none" 
+                          className="text-blue-400"
+                          strokeDasharray={226}
+                          strokeDashoffset={226 - (226 * uploadProgress / 100)}
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-white font-bold">{uploadProgress}%</span>
+                    </div>
+                    <p className="text-white/70 mt-2">جاري الرفع...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Uploaded Images Grid */}
             {form.images.length > 0 && (
               <div className="mt-8">
-                <h3 className="text-white/70 text-sm font-medium mb-4">الصور المرفوعة ({form.images.length})</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white/80 text-sm font-medium">الصور المرفوعة</h3>
+                  <span className="px-3 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">{form.images.length} صورة</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {form.images.map((img, idx) => (
-                    <div key={idx} className="relative group">
-                      <img
+                    <div key={idx} className="relative group aspect-square">
+                      <Image
                         src={img}
-                        alt={`Product ${idx}`}
-                        className={`w-full h-40 object-cover rounded-lg border ${form.mainImageIndex === idx ? 'border-green-400' : 'border-white/20'}`}
+                        alt={`Product ${idx + 1}`}
+                        fill
+                        className={`object-cover rounded-xl border-2 transition-all ${
+                          form.mainImageIndex === idx 
+                            ? 'border-green-400 ring-2 ring-green-400/30' 
+                            : 'border-white/10 group-hover:border-white/30'
+                        }`}
                       />
-                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                      {form.mainImageIndex === idx && (
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full font-medium">
+                          رئيسية
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all rounded-xl flex items-center justify-center gap-2">
                         <button
                           type="button"
-                          onClick={() => setMainImage(idx)}
-                          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                          title="اجعل هذه الصورة رئيسية"
+                          onClick={(e) => { e.stopPropagation(); setMainImage(idx); }}
+                          className={`p-2.5 rounded-xl transition-all ${
+                            form.mainImageIndex === idx
+                              ? 'bg-green-500 text-white'
+                              : 'bg-white/20 hover:bg-blue-500 text-white'
+                          }`}
+                          title="تعيين كصورة رئيسية"
                         >
-                          ★
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                          </svg>
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleRemoveImage(idx)}
-                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded"
-                          title="حذف"
+                          onClick={(e) => { e.stopPropagation(); handleRemoveImage(idx); }}
+                          className="p-2.5 bg-white/20 hover:bg-red-500 text-white rounded-xl transition-all"
+                          title="حذف الصورة"
                         >
-                          ✕
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -336,79 +651,156 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {/* Video Upload */}
-            <div className="mt-8">
-              <h3 className="text-white/70 text-sm font-medium mb-4">فيديوهات المنتج ({form.videos.length})</h3>
-              <ImageUpload onUploadSuccess={handleAddVideo} folder="wonderland/products/videos" accept="video/*" />
-              {form.videos.length > 0 && (
-                <div className="mt-4 grid grid-cols-1 gap-4">
-                  {form.videos.map((v, i) => (
-                    <video key={i} src={v} controls className="w-full h-48 object-cover rounded-lg" />
-                  ))}
+            {/* Video & 3D Section */}
+            <div className="mt-8 pt-8 border-t border-white/10">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Video Upload */}
+                <div className="p-4 bg-purple-500/10 border border-purple-400/20 rounded-xl">
+                  <h3 className="text-purple-300 text-sm font-medium mb-3 flex items-center gap-2">
+                    🎬 فيديو المنتج
+                    {form.videos.length > 0 && (
+                      <span className="px-2 py-0.5 bg-purple-500/30 text-purple-200 text-xs rounded-full">{form.videos.length}</span>
+                    )}
+                  </h3>
+                  <label className="block w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 text-sm text-center cursor-pointer transition-all">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('folder', 'wonderland/products/videos');
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        if (res.ok) {
+                          const data = await res.json();
+                          handleAddVideo(data.secure_url);
+                        }
+                      }}
+                    />
+                    📤 رفع فيديو
+                  </label>
+                  {form.videos.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {form.videos.map((v, i) => (
+                        <video key={i} src={v} controls className="w-full h-32 object-cover rounded-lg" />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* 3D Upload */}
-            <div className="mt-8">
-              <h3 className="text-white/70 text-sm font-medium mb-4">ملف ثلاثي الأبعاد (GLB/GLTF/OBJ)</h3>
-              <ImageUpload onUploadSuccess={handleAdd3D} folder="wonderland/products/3d" accept=".glb,.gltf,.obj" />
-              <div className="mt-3 text-white/60 text-sm">
-                {form.threeD ? (
-                  <a href={form.threeD} target="_blank" rel="noreferrer" className="underline">عرض ملف 3D</a>
-                ) : (
-                  <span>لم يتم رفع ملف ثلاثي الأبعاد بعد — سيتم عرض "قريباً 3D" تلقائياً في صفحة المنتج</span>
-                )}
+                {/* 3D Upload */}
+                <div className="p-4 bg-cyan-500/10 border border-cyan-400/20 rounded-xl">
+                  <h3 className="text-cyan-300 text-sm font-medium mb-3 flex items-center gap-2">
+                    🎮 ملف 3D
+                    {form.threeD && <span className="px-2 py-0.5 bg-cyan-500/30 text-cyan-200 text-xs rounded-full">✓</span>}
+                  </h3>
+                  <label className="block w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 text-sm text-center cursor-pointer transition-all">
+                    <input
+                      type="file"
+                      accept=".glb,.gltf,.obj"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('folder', 'wonderland/products/3d');
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        if (res.ok) {
+                          const data = await res.json();
+                          handleAdd3D(data.secure_url);
+                        }
+                      }}
+                    />
+                    📤 رفع ملف GLB/GLTF/OBJ
+                  </label>
+                  {form.threeD ? (
+                    <a href={form.threeD} target="_blank" rel="noreferrer" className="mt-3 block text-cyan-300 text-sm underline">
+                      ✓ تم رفع ملف 3D - انقر للعرض
+                    </a>
+                  ) : (
+                    <p className="mt-3 text-white/40 text-xs">اختياري - لعرض المنتج بتقنية 3D</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Products List */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
-          <h2 className="text-2xl font-bold text-white mb-6">📦 المنتجات المضافة ({products.length})</h2>
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 shadow-xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+              <span className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">📦</span>
+              المنتجات المضافة
+            </h2>
+            <span className="px-4 py-2 bg-white/10 text-white/70 rounded-xl text-sm">{products.length} منتج</span>
+          </div>
           
           {products.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map(product => (
-                <div key={product.id} className="bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition">
-                  {product.images && product.images.length > 0 && (
-                    <img
-                      src={product.images[(product.mainImageIndex ?? 0) as number] || product.images[0]}
-                      alt={product.name}
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
-                  {!product.images || product.images.length === 0 ? (
-                    <div className="w-full h-48 flex items-center justify-center bg-white/5 text-white/60">لا توجد صورة</div>
-                  ) : null}
+                <div key={product.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/30 hover:bg-white/10 transition-all group">
+                  <div className="relative h-48">
+                    {product.images && product.images.length > 0 ? (
+                      <Image
+                        src={product.images[(product.mainImageIndex ?? 0) as number] || product.images[0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-white/5 text-white/40">
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    {product.images && product.images.length > 1 && (
+                      <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded-lg">
+                        +{product.images.length - 1} صور
+                      </div>
+                    )}
+                  </div>
                   <div className="p-4">
-                    <h3 className="text-white font-semibold mb-2">{product.name}</h3>
-                    <p className="text-white/60 text-sm mb-3">{product.description.substring(0, 60)}...</p>
-                    <div className="flex justify-between items-center text-sm text-white/70 mb-3">
-                      <span>{product.price} د.ع</span>
-                      <span>{product.quantity} قطعة</span>
+                    <h3 className="text-white font-semibold mb-1 line-clamp-1">{product.name}</h3>
+                    <p className="text-white/50 text-sm mb-3 line-clamp-2">{product.description || 'بدون وصف'}</p>
+                    <div className="flex justify-between items-center text-sm mb-4">
+                      <span className="text-green-400 font-bold">${product.price}</span>
+                      <span className="text-white/50">{product.quantity} قطعة</span>
                     </div>
+                    {product.dimensions?.width && (
+                      <div className="text-xs text-white/40 mb-3">
+                        📐 {product.dimensions.width}×{product.dimensions.height}×{product.dimensions.depth} {product.dimensions.unit}
+                      </div>
+                    )}
                     <button
                       onClick={() => handleDeleteProduct(product.id)}
-                      className="w-full py-2 bg-red-600/30 hover:bg-red-600/50 text-red-200 rounded transition font-medium"
+                      className="w-full py-2.5 bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-xl transition font-medium text-sm flex items-center justify-center gap-2"
                     >
-                      🗑️ حذف
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      حذف
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-white/60 text-center py-8">لا توجد منتجات بعد</p>
+            <div className="text-center py-16">
+              <div className="w-20 h-20 mx-auto mb-4 bg-white/5 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <p className="text-white/50">لا توجد منتجات بعد</p>
+              <p className="text-white/30 text-sm mt-1">ابدأ بإضافة منتجك الأول</p>
+            </div>
           )}
-        </div>
-
-        {/* Back Link */}
-        <div className="text-center mt-8">
-          <Link href="/admin/dashboard" className="text-white/60 hover:text-white transition">
-            ← العودة إلى لوحة التحكم
-          </Link>
         </div>
       </div>
     </main>
