@@ -36,7 +36,7 @@ interface Product {
   };
 }
 
-export default function Try3DPage() {
+function Try3DContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const productId = searchParams.get('productId');
@@ -376,5 +376,26 @@ export default function Try3DPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+// Loading component
+function Try3DLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">جاري التحميل...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main export with Suspense
+export default function Try3DPage() {
+  return (
+    <Suspense fallback={<Try3DLoading />}>
+      <Try3DContent />
+    </Suspense>
   );
 }
