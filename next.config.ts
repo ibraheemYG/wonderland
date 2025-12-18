@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // إعدادات لدعم رفع الملفات الكبيرة
+  serverExternalPackages: ['cloudinary'],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
+  },
 };
 
 export default nextConfig;

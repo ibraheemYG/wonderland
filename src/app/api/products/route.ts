@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Product } from '@/models/Product';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,9 +12,16 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
 
     if (id) {
-      // استخدام lean() لأداء أفضل
-      const product = await Product.findOne({ id }).lean();
+      // البحث بـ id المخصص أو _id الافتراضي من MongoDB
+      let product = await Product.findOne({ id }).lean();
+      
+      // إذا لم يتم العثور عليه بـ id، جرب البحث بـ _id
+      if (!product && mongoose.Types.ObjectId.isValid(id)) {
+        product = await Product.findById(id).lean();
+      }
+      
       if (!product) {
+        console.log('❌ Product not found for id:', id);
         return NextResponse.json(
           { success: false, message: 'Product not found' },
           { status: 404 }
@@ -37,7 +45,7 @@ export async function GET(request: NextRequest) {
     // هذا أسرع بكثير لأنه يتجنب overhead الـ Mongoose
     let cursor = Product.find(query)
       .sort({ createdAt: -1 })
-      .select('id name price imageUrl images category rating originalPrice') // جلب الحقول المطلوبة فقط
+      .select('id _id name price imageUrl images category rating originalPrice') // جلب الحقول المطلوبة فقط
       .lean();
 
     if (limitParam) {
@@ -48,13 +56,19 @@ export async function GET(request: NextRequest) {
     }
 
     const products = await cursor;
+    
+    // التأكد من أن كل منتج لديه id
+    const productsWithId = products.map((p: any) => ({
+      ...p,
+      id: p.id || p._id?.toString(),
+    }));
 
-    console.log('✅ Products fetched from MongoDB:', products.length);
+    console.log('✅ Products fetched from MongoDB:', productsWithId.length);
 
     // إضافة Cache headers لتسريع الطلبات المتكررة
     const response = NextResponse.json({
       success: true,
-      data: products,
+      data: productsWithId,
     });
     
     // Cache لمدة 60 ثانية مع إعادة التحقق في الخلفية
@@ -108,6 +122,7 @@ export async function POST(request: NextRequest) {
       mainImageIndex: typeof body.mainImageIndex === 'number' ? body.mainImageIndex : 0,
       videos: Array.isArray(body.videos) ? body.videos : [],
       threeD: body.threeD || undefined,
+      sketchfabId: body.sketchfabId || undefined,
       category: body.category,
       description: body.description,
       rating: body.rating,
@@ -137,6 +152,88 @@ export async function POST(request: NextRequest) {
     console.error('❌ Error creating product:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to create product', error: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    await connectDB();
+    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    const body = await request.json();
+    
+    // البحث عن المنتج
+    let product = await Product.findOne({ id });
+    
+    // إذا لم يتم العثور عليه بـ id، جرب البحث بـ _id
+    if (!product && mongoose.Types.ObjectId.isValid(id)) {
+      product = await Product.findById(id);
+    }
+    
+    if (!product) {
+      return NextResponse.json(
+        { success: false, message: 'Product not found' },
+        { status: 404 }
+      );
+    }
+    
+    // تحديث الحقول
+    const imagesArray = Array.isArray(body.images) && body.images.length > 0
+      ? body.images
+      : product.images;
+
+    product.name = body.name || product.name;
+    product.price = body.price ?? product.price;
+    product.images = imagesArray;
+    product.imageUrl = imagesArray[0] || product.imageUrl;
+    product.mainImageIndex = typeof body.mainImageIndex === 'number' ? body.mainImageIndex : product.mainImageIndex;
+    product.videos = Array.isArray(body.videos) ? body.videos : product.videos;
+    product.threeD = body.threeD !== undefined ? body.threeD : product.threeD;
+    product.sketchfabId = body.sketchfabId !== undefined ? body.sketchfabId : product.sketchfabId;
+    
+    console.log('📥 Received videos:', body.videos, 'threeD:', body.threeD);
+    console.log('📦 Saving videos:', product.videos, 'threeD:', product.threeD);
+    product.category = body.category || product.category;
+    product.description = body.description !== undefined ? body.description : product.description;
+    product.quantity = body.quantity ?? product.quantity;
+    product.discount = body.discount ?? product.discount;
+    
+    // تحديث الحقول الإضافية
+    if (body.dimensions) {
+      product.dimensions = {
+        width: body.dimensions.width || undefined,
+        height: body.dimensions.height || undefined,
+        depth: body.dimensions.depth || undefined,
+        unit: body.dimensions.unit || 'cm',
+      };
+    }
+    product.weight = body.weight !== undefined ? body.weight : product.weight;
+    product.material = body.material !== undefined ? body.material : product.material;
+    product.color = body.color !== undefined ? body.color : product.color;
+    
+    await product.save();
+    
+    console.log('✅ Product updated:', id);
+    
+    return NextResponse.json({
+      success: true,
+      data: product,
+    });
+  } catch (error) {
+    console.error('❌ Error updating product:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to update product', error: String(error) },
       { status: 500 }
     );
   }

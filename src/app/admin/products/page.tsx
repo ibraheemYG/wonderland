@@ -25,6 +25,7 @@ interface Product {
   mainImageIndex?: number;
   videos?: string[];
   threeD?: string;
+  sketchfabId?: string;
   dimensions?: Dimensions;
   weight?: number;
   material?: string;
@@ -50,6 +51,7 @@ export default function ProductsPage() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState({
     name: '',
     category: 'living-room',
@@ -60,7 +62,9 @@ export default function ProductsPage() {
     images: [] as string[],
     mainImageIndex: 0,
     videos: [] as string[],
+    has3D: false,
     threeD: '',
+    sketchfabId: '',
     dimensions: {
       width: 0,
       height: 0,
@@ -230,6 +234,7 @@ export default function ProductsPage() {
         mainImageIndex: form.mainImageIndex,
         videos: form.videos,
         threeD: form.threeD,
+        sketchfabId: form.sketchfabId || undefined,
         dimensions: {
           width: form.dimensions.width || undefined,
           height: form.dimensions.height || undefined,
@@ -241,8 +246,15 @@ export default function ProductsPage() {
         color: form.color || undefined,
       };
 
-      const res = await fetch('/api/products', {
-        method: 'POST',
+      // تحديد إذا كان تعديل أو إضافة جديدة
+      const isEditing = editingProduct !== null;
+      const url = isEditing ? `/api/products?id=${editingProduct.id}` : '/api/products';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      console.log('📤 Sending product payload:', { videos: payload.videos, threeD: payload.threeD });
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -261,42 +273,52 @@ export default function ProductsPage() {
         price: saved.price,
         quantity: saved.quantity || 0,
         discount: saved.originalPrice ? saved.originalPrice : 0,
-          description: saved.description || '',
-          images: saved.images || (saved.imageUrl ? [saved.imageUrl] : []),
-          mainImageIndex: saved.mainImageIndex || 0,
-          videos: saved.videos || [],
-          threeD: saved.threeD || '',
-          dimensions: saved.dimensions,
-          weight: saved.weight,
-          material: saved.material,
-          color: saved.color,
-        };
+        description: saved.description || '',
+        images: saved.images || (saved.imageUrl ? [saved.imageUrl] : []),
+        mainImageIndex: saved.mainImageIndex || 0,
+        videos: saved.videos || [],
+        threeD: saved.threeD || '',
+        sketchfabId: saved.sketchfabId || '',
+        dimensions: saved.dimensions,
+        weight: saved.weight,
+        material: saved.material,
+        color: saved.color,
+      };
 
+      if (editingProduct) {
+        // تحديث المنتج في القائمة
+        setProducts(prev => prev.map(p => p.id === editingProduct.id ? productItem : p));
+        setEditingProduct(null);
+        alert('✅ تم تحديث المنتج بنجاح!');
+      } else {
+        // إضافة منتج جديد
         setProducts(prev => [productItem, ...prev]);
-
-        // إعادة تعيين النموذج
-        setForm({
-          name: '',
-          category: 'living-room',
-          price: 0,
-          quantity: 0,
-          discount: 0,
-          description: '',
-          images: [],
-          mainImageIndex: 0,
-          videos: [],
-          threeD: '',
-          dimensions: { width: 0, height: 0, depth: 0, unit: 'cm' },
-          weight: 0,
-          material: '',
-          color: '',
-        });
-
         alert('✅ تم إضافة المنتج بنجاح!');
-      } catch (err: any) {
-        console.error('Failed to save product:', err);
-        alert('❌ فشل في حفظ المنتج: ' + (err.message || err));
-      } finally {
+      }
+
+      // إعادة تعيين النموذج
+      setForm({
+        name: '',
+        category: 'living-room',
+        price: 0,
+        quantity: 0,
+        discount: 0,
+        description: '',
+        images: [],
+        mainImageIndex: 0,
+        videos: [],
+        has3D: false,
+        threeD: '',
+        sketchfabId: '',
+        dimensions: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        weight: 0,
+        material: '',
+        color: '',
+      });
+    } catch (err: any) {
+      console.error('Failed to save product:', err);
+      alert('❌ فشل في حفظ المنتج: ' + (err.message || err));
+    } finally {
         setIsSubmitting(false);
       }
   };
@@ -316,6 +338,59 @@ export default function ProductsPage() {
     })();
   };
 
+  // تحميل بيانات المنتج للتعديل
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setForm({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      quantity: product.quantity || 0,
+      discount: product.discount || 0,
+      description: product.description || '',
+      images: product.images || [],
+      mainImageIndex: product.mainImageIndex || 0,
+      videos: product.videos || [],
+      has3D: !!product.threeD,
+      threeD: product.threeD || '',
+      sketchfabId: product.sketchfabId || '',
+      dimensions: {
+        width: product.dimensions?.width || 0,
+        height: product.dimensions?.height || 0,
+        depth: product.dimensions?.depth || 0,
+        unit: product.dimensions?.unit || 'cm',
+      },
+      weight: product.weight || 0,
+      material: product.material || '',
+      color: product.color || '',
+    });
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // إلغاء التعديل
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+    setForm({
+      name: '',
+      category: 'living-room',
+      price: 0,
+      quantity: 0,
+      discount: 0,
+      description: '',
+      images: [],
+      mainImageIndex: 0,
+      videos: [],
+      has3D: false,
+      threeD: '',
+      sketchfabId: '',
+      dimensions: { width: 0, height: 0, depth: 0, unit: 'cm' },
+      weight: 0,
+      material: '',
+      color: '',
+    });
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -328,12 +403,28 @@ export default function ProductsPage() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          {/* Add Product Form */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 shadow-xl">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <span className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">➕</span>
-              إضافة منتج جديد
-            </h2>
+          {/* Add/Edit Product Form */}
+          <div className={`bg-gradient-to-br ${editingProduct ? 'from-amber-500/10 to-amber-500/5 border-amber-400/30' : 'from-white/10 to-white/5 border-white/20'} backdrop-blur-md border rounded-2xl p-6 md:p-8 shadow-xl`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <span className={`w-10 h-10 ${editingProduct ? 'bg-amber-500/20' : 'bg-green-500/20'} rounded-xl flex items-center justify-center`}>
+                  {editingProduct ? '✏️' : '➕'}
+                </span>
+                {editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}
+              </h2>
+              {editingProduct && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition text-sm flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  إلغاء التعديل
+                </button>
+              )}
+            </div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* اسم المنتج */}
@@ -501,11 +592,44 @@ export default function ProductsPage() {
                 />
               </div>
 
-              {/* زر الإضافة */}
+              {/* Sketchfab 3D Model */}
+              <div className="p-4 bg-purple-500/10 border border-purple-400/20 rounded-xl">
+                <label className="block text-purple-300 text-sm font-medium mb-3 flex items-center gap-2">
+                  🎨 نموذج Sketchfab ثلاثي الأبعاد (اختياري)
+                </label>
+                <input
+                  type="text"
+                  value={form.sketchfabId}
+                  onChange={(e) => setForm({...form, sketchfabId: e.target.value})}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-purple-400 transition-all"
+                  placeholder="معرف النموذج من Sketchfab (مثال: abc123def456)"
+                  dir="ltr"
+                />
+                <p className="text-white/50 text-xs mt-2">
+                  💡 يمكنك الحصول على المعرف من رابط Sketchfab: sketchfab.com/3d-models/model-name-<span className="text-purple-300">abc123def456</span>
+                </p>
+                {form.sketchfabId && (
+                  <div className="mt-3">
+                    <a 
+                      href={`https://sketchfab.com/3d-models/${form.sketchfabId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 text-sm transition-colors"
+                    >
+                      <span>👁️ معاينة النموذج على Sketchfab</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* زر الإضافة/التحديث */}
               <button
                 type="submit"
                 disabled={isSubmitting || form.images.length === 0}
-                className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white rounded-xl transition-all font-bold text-lg shadow-lg shadow-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className={`w-full py-4 bg-gradient-to-r ${editingProduct ? 'from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 shadow-amber-500/25' : 'from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 shadow-green-500/25'} text-white rounded-xl transition-all font-bold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
               >
                 {isSubmitting ? (
                   <>
@@ -515,6 +639,8 @@ export default function ProductsPage() {
                     </svg>
                     جاري الحفظ...
                   </>
+                ) : editingProduct ? (
+                  <>✏️ تحديث المنتج</>
                 ) : (
                   <>✅ إضافة المنتج</>
                 )}
@@ -665,27 +791,63 @@ export default function ProductsPage() {
                   <label className="block w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 text-sm text-center cursor-pointer transition-all">
                     <input
                       type="file"
-                      accept="video/*"
+                      accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.mov"
                       className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        formData.append('folder', 'wonderland/products/videos');
-                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                        if (res.ok) {
-                          const data = await res.json();
-                          handleAddVideo(data.secure_url);
+                        
+                        // التحقق من حجم الملف (100MB)
+                        if (file.size > 100 * 1024 * 1024) {
+                          alert('حجم الفيديو أكبر من 100MB');
+                          return;
                         }
+
+                        // إظهار رسالة تحميل
+                        const btn = e.target.parentElement;
+                        if (btn) btn.innerHTML = '⏳ جاري رفع الفيديو...';
+
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          formData.append('folder', 'wonderland/products/videos');
+                          formData.append('type', 'video');
+                          
+                          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                          const data = await res.json();
+                          
+                          if (res.ok && data.secure_url) {
+                            handleAddVideo(data.secure_url);
+                            alert('✅ تم رفع الفيديو بنجاح!');
+                          } else {
+                            alert('❌ فشل رفع الفيديو: ' + (data.message || 'خطأ غير معروف'));
+                          }
+                        } catch (err) {
+                          console.error('Video upload error:', err);
+                          alert('❌ فشل رفع الفيديو');
+                        }
+                        
+                        // إعادة الزر لحالته الأصلية
+                        if (btn) btn.innerHTML = '📤 رفع فيديو';
                       }}
                     />
-                    📤 رفع فيديو
+                    📤 رفع فيديو (MP4, WebM, MOV - حتى 100MB)
                   </label>
                   {form.videos.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {form.videos.map((v, i) => (
-                        <video key={i} src={v} controls className="w-full h-32 object-cover rounded-lg" />
+                        <div key={i} className="relative group">
+                          <video src={v} controls className="w-full h-32 object-cover rounded-lg" />
+                          <button
+                            type="button"
+                            onClick={() => setForm(prev => ({ ...prev, videos: prev.videos.filter((_, idx) => idx !== i) }))}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -693,36 +855,90 @@ export default function ProductsPage() {
 
                 {/* 3D Upload */}
                 <div className="p-4 bg-cyan-500/10 border border-cyan-400/20 rounded-xl">
-                  <h3 className="text-cyan-300 text-sm font-medium mb-3 flex items-center gap-2">
-                    🎮 ملف 3D
-                    {form.threeD && <span className="px-2 py-0.5 bg-cyan-500/30 text-cyan-200 text-xs rounded-full">✓</span>}
-                  </h3>
-                  <label className="block w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 text-sm text-center cursor-pointer transition-all">
-                    <input
-                      type="file"
-                      accept=".glb,.gltf,.obj"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        formData.append('folder', 'wonderland/products/3d');
-                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                        if (res.ok) {
-                          const data = await res.json();
-                          handleAdd3D(data.secure_url);
+                  {/* Toggle لتفعيل/إلغاء 3D */}
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-cyan-300 text-sm font-medium flex items-center gap-2">
+                      🎮 هل يحتوي المنتج على ملف 3D؟
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, has3D: !prev.has3D, threeD: prev.has3D ? '' : prev.threeD }))}
+                      className={`relative w-14 h-7 rounded-full transition-colors ${form.has3D ? 'bg-emerald-500' : 'bg-white/20'}`}
+                    >
+                      <span 
+                        className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${form.has3D ? 'right-1' : 'left-1'}`}
+                      />
+                    </button>
+                  </div>
+                  
+                  {/* عرض قسم رفع 3D فقط عند التفعيل */}
+                  {form.has3D && (
+                    <>
+                      {form.threeD && <span className="inline-block mb-3 px-2 py-0.5 bg-cyan-500/30 text-cyan-200 text-xs rounded-full">✓ تم رفع الملف</span>}
+                      <label className="block w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 text-sm text-center cursor-pointer transition-all">
+                        <input
+                          type="file"
+                          accept=".glb,.gltf,.obj,.fbx,.stl,.3ds,.dae"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                        // التحقق من حجم الملف (50MB)
+                        if (file.size > 50 * 1024 * 1024) {
+                          alert('حجم الملف أكبر من 50MB');
+                          return;
                         }
+
+                        // إظهار رسالة تحميل
+                        const btn = e.target.parentElement;
+                        if (btn) btn.innerHTML = '⏳ جاري رفع الملف 3D...';
+
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          formData.append('folder', 'wonderland/products/3d');
+                          formData.append('type', '3d');
+                          
+                          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                          const data = await res.json();
+                          
+                          if (res.ok && data.secure_url) {
+                            handleAdd3D(data.secure_url);
+                            alert('✅ تم رفع ملف 3D بنجاح!');
+                          } else {
+                            alert('❌ فشل رفع الملف: ' + (data.message || 'خطأ غير معروف'));
+                          }
+                        } catch (err) {
+                          console.error('3D upload error:', err);
+                          alert('❌ فشل رفع ملف 3D');
+                        }
+                        
+                        // إعادة الزر لحالته الأصلية
+                        if (btn) btn.innerHTML = '📤 رفع ملف 3D';
                       }}
                     />
-                    📤 رفع ملف GLB/GLTF/OBJ
+                    📤 رفع ملف 3D (GLB, GLTF, OBJ, FBX - حتى 50MB)
                   </label>
                   {form.threeD ? (
-                    <a href={form.threeD} target="_blank" rel="noreferrer" className="mt-3 block text-cyan-300 text-sm underline">
-                      ✓ تم رفع ملف 3D - انقر للعرض
-                    </a>
+                    <div className="mt-3 flex items-center justify-between bg-white/5 rounded-lg p-2">
+                      <a href={form.threeD} target="_blank" rel="noreferrer" className="text-cyan-300 text-sm underline">
+                        ✓ تم رفع ملف 3D - انقر للعرض
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, threeD: '' }))}
+                        className="p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-lg"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   ) : (
-                    <p className="mt-3 text-white/40 text-xs">اختياري - لعرض المنتج بتقنية 3D</p>
+                    <p className="mt-3 text-white/40 text-xs">ارفع ملف 3D لعرض المنتج بتقنية 3D</p>
+                  )}
+                    </>
                   )}
                 </div>
               </div>
@@ -759,6 +975,24 @@ export default function ProductsPage() {
                         </svg>
                       </div>
                     )}
+                    
+                    {/* وسوم 3D والخصم */}
+                    <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
+                      {product.threeD && (
+                        <span className="px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full shadow flex items-center gap-1">
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                          </svg>
+                          3D
+                        </span>
+                      )}
+                      {product.discount && product.discount > 0 && (
+                        <span className="px-2 py-1 bg-orange-500 text-white text-xs font-bold rounded-full shadow">
+                          {product.discount}%-
+                        </span>
+                      )}
+                    </div>
+                    
                     {product.images && product.images.length > 1 && (
                       <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded-lg">
                         +{product.images.length - 1} صور
@@ -777,15 +1011,26 @@ export default function ProductsPage() {
                         📐 {product.dimensions.width}×{product.dimensions.height}×{product.dimensions.depth} {product.dimensions.unit}
                       </div>
                     )}
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="w-full py-2.5 bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-xl transition font-medium text-sm flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      حذف
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditProduct(product)}
+                        className="flex-1 py-2.5 bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 rounded-xl transition font-medium text-sm flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        تعديل
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(product.id)}
+                        className="flex-1 py-2.5 bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-xl transition font-medium text-sm flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        حذف
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

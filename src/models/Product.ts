@@ -16,6 +16,7 @@ export interface IProduct extends Document {
   mainImageIndex?: number;
   videos?: string[];
   threeD?: string;
+  sketchfabId?: string; // معرف نموذج Sketchfab
   category: 'living-room' | 'bedroom' | 'kitchen' | 'bathroom' | 'decor' | 'appliances' | 'sale' | 'furnishings';
   description?: string;
   rating?: number;
@@ -61,6 +62,9 @@ const ProductSchema = new Schema<IProduct>(
       default: [],
     },
     threeD: {
+      type: String,
+    },
+    sketchfabId: {
       type: String,
     },
     category: {

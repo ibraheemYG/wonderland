@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import Rating from '@/components/common/Rating';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatIQDFromUSD } from '@/utils/currency';
 
 interface Product {
@@ -16,6 +17,8 @@ interface Product {
   images?: string[];
   rating?: number;
   category?: string;
+  threeD?: string;
+  discount?: number;
 }
 
 const categoryNames: Record<string, string> = {
@@ -31,9 +34,22 @@ const categoryNames: Record<string, string> = {
 
 const ProductCard = ({ product }: { product: Product }) => {
   const { addToCart } = useCart();
+  const router = useRouter();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // تجنب التنقل عند الضغط على الأزرار أو الروابط
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      return;
+    }
+    router.push(`/products/${product.id}`);
+  };
 
   return (
-    <div className="group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2 hover:border-primary/30">
+    <div 
+      onClick={handleCardClick}
+      className="group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2 hover:border-primary/30 cursor-pointer"
+    >
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       
@@ -49,17 +65,33 @@ const ProductCard = ({ product }: { product: Product }) => {
           />
         </Link>
         
-        {/* Discount badge with animation */}
-        {product.originalPrice && (
-          <div className="absolute top-4 left-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse">
-            <span className="flex items-center gap-1">
+        {/* وسوم 3D والخصم في الأعلى */}
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+          {/* وسم 3D */}
+          {product.threeD && (
+            <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              3D
+            </div>
+          )}
+          
+          {/* وسم الخصم */}
+          {(product.discount && product.discount > 0) || product.originalPrice ? (
+            <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
               </svg>
-              خصم
-            </span>
-          </div>
-        )}
+              {product.discount 
+                ? `${product.discount}%-` 
+                : product.originalPrice 
+                  ? `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%-`
+                  : ''
+              }
+            </div>
+          ) : null}
+        </div>
         
         {/* Quick action buttons overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
@@ -116,15 +148,17 @@ const ProductCard = ({ product }: { product: Product }) => {
               أضف إلى السلة
             </span>
           </button>
-          <Link
-            href={`/try-3d?productId=${product.id}`}
-            className="flex items-center justify-center gap-2 w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold py-2.5 px-4 rounded-xl transition-all duration-300"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-            </svg>
-            تجربة 3D
-          </Link>
+          {product.threeD && (
+            <Link
+              href={`/try-3d?productId=${product.id}`}
+              className="flex items-center justify-center gap-2 w-full text-center bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 font-semibold py-2.5 px-4 rounded-xl transition-all duration-300 border border-emerald-200 dark:border-emerald-700"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              تجربة 3D
+            </Link>
+          )}
         </div>
       </div>
     </div>

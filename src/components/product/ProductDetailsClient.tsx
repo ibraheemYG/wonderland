@@ -5,6 +5,15 @@ import Link from 'next/link';
 import ProductGallery from '@/components/product/ProductGallery';
 import { formatIQDFromUSD } from '@/utils/currency';
 import { useRouter } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
+import SketchfabViewer from '@/components/product/SketchfabViewer';
+
+interface Dimensions {
+  width?: number;
+  height?: number;
+  depth?: number;
+  unit?: 'cm' | 'inch';
+}
 
 interface Product {
   id: string;
@@ -18,6 +27,11 @@ interface Product {
   images?: string[];
   videos?: string[];
   threeD?: string;
+  sketchfabId?: string;
+  dimensions?: Dimensions;
+  weight?: number;
+  material?: string;
+  color?: string;
 }
 
 interface ProductDetailsClientProps {
@@ -29,6 +43,7 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -43,9 +58,11 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
           throw new Error(body.message || 'لم يتم العثور على المنتج');
         }
         const json = await res.json();
+        console.log('📦 Product data:', json.data);
         setProduct(json.data ?? null);
       } catch (err: any) {
         if (err.name === 'AbortError') return;
+        console.error('❌ Error loading product:', err);
         setError(err.message || 'تعذر تحميل المنتج');
         setProduct(null);
       } finally {
@@ -110,40 +127,146 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <ProductGallery images={gallery} name={product.name} />
+        <ProductGallery images={gallery} videos={product.videos} name={product.name} />
 
-        <section>
-          <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+        <section className="space-y-6">
+          <h1 className="text-3xl font-bold text-foreground">{product.name}</h1>
+          
           {product.rating && (
-            <p className="mb-2 text-foreground/70">تقييم: {product.rating} / 5</p>
+            <div className="flex items-center gap-2">
+              <div className="flex text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className={`w-5 h-5 ${i < Math.floor(product.rating!) ? 'fill-current' : 'fill-gray-300'}`} viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                ))}
+              </div>
+              <span className="text-foreground/70">({product.rating} / 5)</span>
+            </div>
           )}
-          <div className="mb-6">
+
+          <div className="flex items-baseline gap-4">
             <p className="text-3xl font-extrabold text-primary">{formatIQDFromUSD(product.price)}</p>
             {product.originalPrice && (
-              <p className="text-sm line-through text-foreground/60 mt-1">
+              <p className="text-lg line-through text-foreground/50">
                 {formatIQDFromUSD(product.originalPrice)}
               </p>
             )}
           </div>
 
-          <p className="text-foreground/80 leading-8 mb-8">
+          <p className="text-foreground/80 leading-8">
             {product.description ?? 'منتج عالي الجودة بتفاصيل عصرية وخامات مختارة بعناية ليمنح منزلك مظهراً أنيقاً ووظائف عملية.'}
           </p>
 
-          <div className="flex flex-wrap gap-4">
+          {/* تفاصيل المنتج */}
+          <div className="bg-secondary/40 rounded-2xl p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground border-b border-secondary pb-2">مواصفات المنتج</h3>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {/* اللون */}
+              {product.color && (
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎨</span>
+                  <div>
+                    <p className="text-foreground/60">اللون</p>
+                    <p className="font-medium text-foreground">{product.color}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* الخامة */}
+              {product.material && (
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🪵</span>
+                  <div>
+                    <p className="text-foreground/60">الخامة</p>
+                    <p className="font-medium text-foreground">{product.material}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* الوزن */}
+              {product.weight && (
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">⚖️</span>
+                  <div>
+                    <p className="text-foreground/60">الوزن</p>
+                    <p className="font-medium text-foreground">{product.weight} كجم</p>
+                  </div>
+                </div>
+              )}
+
+              {/* الأبعاد */}
+              {product.dimensions && (product.dimensions.width || product.dimensions.height || product.dimensions.depth) && (
+                <div className="flex items-center gap-3 col-span-2">
+                  <span className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">📐</span>
+                  <div>
+                    <p className="text-foreground/60">الأبعاد</p>
+                    <p className="font-medium text-foreground">
+                      {[
+                        product.dimensions.width && `العرض: ${product.dimensions.width}`,
+                        product.dimensions.height && `الارتفاع: ${product.dimensions.height}`,
+                        product.dimensions.depth && `العمق: ${product.dimensions.depth}`
+                      ].filter(Boolean).join(' × ')} {product.dimensions.unit || 'سم'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* رسالة إذا لم تكن هناك مواصفات */}
+            {!product.color && !product.material && !product.weight && !product.dimensions && (
+              <p className="text-foreground/50 text-sm text-center py-2">لا توجد مواصفات إضافية متاحة لهذا المنتج</p>
+            )}
+          </div>
+
+          {/* عرض نموذج Sketchfab ثلاثي الأبعاد */}
+          {product.sketchfabId && (
+            <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl p-6 space-y-4 border border-purple-500/20">
+              <h3 className="text-lg font-semibold text-foreground border-b border-secondary pb-2 flex items-center gap-2">
+                <span className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">🎨</span>
+                معاينة ثلاثية الأبعاد
+              </h3>
+              <SketchfabViewer modelId={product.sketchfabId} />
+              <p className="text-foreground/60 text-sm text-center">
+                💡 يمكنك تدوير النموذج وتكبيره باستخدام الماوس
+              </p>
+            </div>
+          )}
+
+          {/* أزرار الإجراءات */}
+          <div className="flex flex-wrap gap-4 pt-4">
+            <button
+              onClick={() => addToCart({
+                ...product,
+                imageUrl: product.images?.[0] || product.imageUrl || '/placeholder.png'
+              })}
+              className="flex-1 min-w-[200px] bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                أضف إلى السلة
+              </span>
+            </button>
             <button
               onClick={() => router.push(`/try-3d?productId=${product.id}`)}
-              className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 font-semibold py-3 px-6 rounded-lg transition-all"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 font-semibold py-4 px-6 rounded-xl transition-all"
             >
               🎯 جرب في 3D
             </button>
-            <Link
-              href="/products"
-              className="inline-block bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3 px-6 rounded-lg"
-            >
-              متابعة التسوق
-            </Link>
           </div>
+
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            متابعة التسوق
+          </Link>
         </section>
       </div>
     </main>
