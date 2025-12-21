@@ -60,6 +60,8 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
     setLoading(true);
     try {
       const payload = {
+        userId: user?.id?.toString(),
+        name: formData.name || user?.name,
         email: formData.email.trim(),
         budget: formData.budget,
         furnitureType: formData.preferences,
@@ -67,7 +69,6 @@ export default function SurveyForm({ onClose, onSubmit }: SurveyFormProps) {
         colors: [] as string[],
         timeline: 'unspecified',
         appWishlist: `Floating survey by ${formData.name || 'ضيف'}`,
-        name: formData.name,
         source: 'floating-survey',
       };
 

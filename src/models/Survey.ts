@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ISurvey extends Document {
+  userId?: string;
+  userName?: string;
   email: string;
   preferences: {
     categories: string[];
@@ -16,6 +18,8 @@ export interface ISurvey extends Document {
 
 const SurveySchema = new Schema<ISurvey>(
   {
+    userId: String,
+    userName: String,
     email: {
       type: String,
       required: true,

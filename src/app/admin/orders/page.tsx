@@ -31,6 +31,8 @@ interface Order {
   };
   items: OrderItem[];
   subtotal: number;
+  discount: number;
+  discountReason?: string;
   shippingCost: number;
   total: number;
   status: string;
@@ -363,6 +365,15 @@ function AdminOrdersContent() {
                     <span className="text-white/60">المجموع الفرعي</span>
                     <span className="text-white">{formatIQDFromUSD(selectedOrder.subtotal)}</span>
                   </div>
+                  {selectedOrder.discount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400">🎁 الخصم</span>
+                      <span className="text-green-400">- {formatIQDFromUSD(selectedOrder.discount)}</span>
+                    </div>
+                  )}
+                  {selectedOrder.discountReason && (
+                    <p className="text-green-400/70 text-xs">{selectedOrder.discountReason}</p>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-white/60">التوصيل</span>
                     <span className="text-white">

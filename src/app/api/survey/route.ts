@@ -2,10 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Survey } from '@/models/Survey';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
+    const userId = searchParams.get('userId');
+    
+    // التحقق من وجود استبيان للمستخدم
+    if (email || userId) {
+      const query: any = {};
+      if (email) query.email = email;
+      if (userId) query.userId = userId;
+      
+      const survey = await Survey.findOne(query);
+      return NextResponse.json({
+        success: true,
+        hasSurvey: !!survey,
+        data: survey,
+      });
+    }
+    
+    // جلب كل الاستبيانات (للأدمن)
     const surveys = await Survey.find().sort({ createdAt: -1 });
     
     console.log('✅ Surveys fetched from MongoDB:', surveys.length);

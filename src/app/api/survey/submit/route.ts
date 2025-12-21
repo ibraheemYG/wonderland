@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
     }
 
     const newSurvey = new Survey({
+      userId: surveyData.userId,
+      userName: surveyData.name,
       email: surveyData.email,
       preferences: {
         categories: surveyData.furnitureType || [],

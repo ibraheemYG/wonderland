@@ -39,6 +39,8 @@ function CheckoutContent() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [hasSurveyDiscount, setHasSurveyDiscount] = useState(false);
+  const [checkingDiscount, setCheckingDiscount] = useState(true);
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -58,6 +60,28 @@ function CheckoutContent() {
     }
   }, [user, router]);
 
+  // التحقق من وجود استبيان للمستخدم (خصم 10%)
+  useEffect(() => {
+    const checkSurveyDiscount = async () => {
+      if (!user?.email) {
+        setCheckingDiscount(false);
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/survey?email=${encodeURIComponent(user.email)}`);
+        const data = await res.json();
+        setHasSurveyDiscount(data.hasSurvey || false);
+      } catch (error) {
+        console.error('Error checking survey discount:', error);
+      } finally {
+        setCheckingDiscount(false);
+      }
+    };
+
+    checkSurveyDiscount();
+  }, [user?.email]);
+
   // ملء البيانات من حساب المستخدم
   useEffect(() => {
     if (user) {
@@ -76,10 +100,13 @@ function CheckoutContent() {
   }, [cartItems, router, success]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // خصم 10% إذا أكمل الاستبيان
+  const discountAmount = hasSurveyDiscount ? Math.round(subtotal * 0.10) : 0;
+  const subtotalAfterDiscount = subtotal - discountAmount;
   // بغداد: توصيل مجاني، باقي المدن: 75,000 دينار
   const SHIPPING_COST = 75000; // تكلفة التوصيل بالدينار
   const shippingCost = formData.city === 'بغداد' ? 0 : SHIPPING_COST;
-  const total = subtotal + shippingCost; // الإجمالي بالدينار
+  const total = subtotalAfterDiscount + shippingCost; // الإجمالي بالدينار
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -144,6 +171,8 @@ function CheckoutContent() {
           image: item.image,
         })),
         subtotal: subtotal,
+        discount: discountAmount,
+        discountReason: hasSurveyDiscount ? 'خصم إكمال الاستبيان (10%)' : undefined,
         shippingCost: shippingCost,
         total: total,
         paymentMethod: formData.paymentMethod,
@@ -365,9 +394,9 @@ function CheckoutContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="lg:hidden w-full py-4 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 transition font-bold text-lg"
+                className="lg:hidden w-full py-4 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl border-2 border-primary/50 hover:border-white hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 font-bold text-lg"
               >
-                {loading ? 'جاري المعالجة...' : `تأكيد الطلب - ${total.toLocaleString('ar-IQ')} د.ع`}
+                {loading ? 'جاري المعالجة...' : `✅ تأكيد الطلب - ${total.toLocaleString('ar-IQ')} د.ع`}
               </button>
             </form>
           </div>
@@ -400,6 +429,20 @@ function CheckoutContent() {
                   <span>المجموع الفرعي</span>
                   <span>{subtotal.toLocaleString('ar-IQ')} د.ع</span>
                 </div>
+                
+                {/* خصم الاستبيان */}
+                {hasSurveyDiscount && (
+                  <div className="flex justify-between text-green-400">
+                    <span>🎁 خصم الاستبيان (10%)</span>
+                    <span>- {discountAmount.toLocaleString('ar-IQ')} د.ع</span>
+                  </div>
+                )}
+                {!hasSurveyDiscount && !checkingDiscount && (
+                  <p className="text-yellow-400/70 text-xs">
+                    💡 أكمل الاستبيان للحصول على خصم 10%!
+                  </p>
+                )}
+                
                 <div className="flex justify-between text-white/70">
                   <span>التوصيل {formData.city && `(${formData.city})`}</span>
                   <span className={shippingCost === 0 ? 'text-green-400' : ''}>
@@ -416,15 +459,18 @@ function CheckoutContent() {
                   <span>الإجمالي</span>
                   <span className="text-primary">{total.toLocaleString('ar-IQ')} د.ع</span>
                 </div>
+                {hasSurveyDiscount && (
+                  <p className="text-green-400/70 text-xs text-center">🎉 تم تطبيق خصم الاستبيان!</p>
+                )}
               </div>
 
               {/* زر الإرسال - للديسكتوب */}
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="hidden lg:block w-full mt-6 py-4 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 transition font-bold text-lg"
+                className="hidden lg:block w-full mt-6 py-4 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl border-2 border-primary/50 hover:border-white hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 font-bold text-lg"
               >
-                {loading ? 'جاري المعالجة...' : 'تأكيد الطلب'}
+                {loading ? 'جاري المعالجة...' : '✅ تأكيد الطلب'}
               </button>
 
               <p className="text-white/40 text-xs text-center mt-4">
