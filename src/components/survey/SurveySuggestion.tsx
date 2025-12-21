@@ -7,51 +7,96 @@ export default function SurveySuggestion() {
   const [showSuggestion, setShowSuggestion] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    // عرض الاقتراح بعد 60 ثانية
+    // التحقق إذا تم رفض العرض مسبقاً
+    const wasDismissed = localStorage.getItem('survey_dismissed');
+    if (wasDismissed) {
+      setDismissed(true);
+      return;
+    }
+
+    // عرض الاقتراح بعد 90 ثانية
     const timer = setTimeout(() => {
       if (!dismissed) {
         setShowSuggestion(true);
       }
-    }, 60000);
+    }, 90000);
 
     return () => clearTimeout(timer);
   }, [dismissed]);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    localStorage.setItem('survey_dismissed', 'true');
+  };
 
   if (dismissed || !showSuggestion) {
     return null;
   }
 
   if (showForm) {
-    return <SurveyForm onClose={() => setDismissed(true)} />;
+    return <SurveyForm onClose={handleDismiss} />;
   }
 
   return (
-    <div className="fixed bottom-24 right-4 z-40 max-w-sm">
-      <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg shadow-2xl p-4 border border-white/20">
-        <div className="flex gap-3 items-start">
-          <span className="text-2xl">🎁</span>
-          <div className="flex-1">
-            <h3 className="font-bold text-white mb-1">هل تريد خصم 10%؟</h3>
-            <p className="text-white/90 text-sm mb-3">أجب على استبيان سريع واحصل على خصم 10% على طلبك الأول</p>
+    <div 
+      className={`fixed bottom-4 left-4 z-40 transition-all duration-500 ease-out ${
+        isExpanded ? 'w-72' : 'w-auto'
+      }`}
+    >
+      {!isExpanded ? (
+        // الشكل المصغر - دائرة صغيرة أنيقة
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="group flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        >
+          <span className="text-lg">🎁</span>
+          <span className="text-sm font-medium">خصم 10%</span>
+          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+        </button>
+      ) : (
+        // الشكل الموسع
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🎁</span>
+              <span className="text-white font-semibold text-sm">عرض خاص</span>
+            </div>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="text-white/80 hover:text-white p-1 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Content */}
+          <div className="p-4">
+            <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">
+              أجب على استبيان سريع واحصل على <span className="font-bold text-amber-600">خصم 10%</span> على طلبك الأول
+            </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex-1 px-3 py-2 bg-white hover:bg-white/90 text-amber-600 font-semibold rounded-lg transition text-sm"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all text-sm"
               >
-                نعم! ✓
+                ابدأ الآن
               </button>
               <button
-                onClick={() => setDismissed(true)}
-                className="px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition text-sm"
+                onClick={handleDismiss}
+                className="px-3 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm transition-colors"
               >
-                ✕
+                لاحقاً
               </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

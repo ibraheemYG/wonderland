@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import ClientLayout from "@/components/layout/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -25,9 +26,11 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider>
             <AnalyticsProvider>
-              <CartProvider>
-                <ClientLayout>{children}</ClientLayout>
-              </CartProvider>
+              <NotificationProvider>
+                <CartProvider>
+                  <ClientLayout>{children}</ClientLayout>
+                </CartProvider>
+              </NotificationProvider>
             </AnalyticsProvider>
           </ThemeProvider>
         </AuthProvider>
