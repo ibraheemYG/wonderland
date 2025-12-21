@@ -133,6 +133,30 @@ function AdminOrdersContent() {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/orders?id=${orderId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders(prev => prev.filter(o => o._id !== orderId));
+        setSelectedOrder(null);
+        router.push('/admin/orders');
+      } else {
+        alert('فشل في حذف الطلب');
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('حدث خطأ في حذف الطلب');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (!user || !isAdmin()) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -402,6 +426,15 @@ function AdminOrdersContent() {
                     💬 واتساب
                   </a>
                 </div>
+
+                {/* زر الحذف */}
+                <button
+                  onClick={() => handleDeleteOrder(selectedOrder._id)}
+                  disabled={updating}
+                  className="w-full py-2 bg-red-500/20 text-red-400 rounded-lg text-center text-sm hover:bg-red-500/30 transition border border-red-500/30 disabled:opacity-50"
+                >
+                  🗑️ حذف الطلب
+                </button>
               </div>
             ) : (
               <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 text-center">

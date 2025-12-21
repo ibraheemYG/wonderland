@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,12 +29,37 @@ export async function POST(request: NextRequest) {
 
     const googleData = await response.json();
 
+    // حفظ أو تحديث المستخدم في قاعدة البيانات
+    await connectDB();
+    
+    let user = await User.findOne({ email: googleData.email });
+    
+    if (user) {
+      // تحديث معلومات المستخدم
+      user = await User.findOneAndUpdate(
+        { email: googleData.email },
+        { 
+          name: googleData.name || user.name,
+          googleId: googleData.sub,
+        },
+        { new: true }
+      );
+    } else {
+      // إنشاء مستخدم جديد
+      user = await User.create({
+        email: googleData.email,
+        name: googleData.name || googleData.email.split('@')[0],
+        googleId: googleData.sub,
+        role: 'user',
+      });
+    }
+
     const userData = {
-      id: Math.floor(Math.random() * 10000),
+      id: user._id.toString(),
       username: googleData.email?.split('@')[0] || 'google-user',
       name: googleData.name || 'Google User',
       email: googleData.email,
-      role: 'user' as const,
+      role: user.role || 'user',
       googleAuth: true,
     };
 

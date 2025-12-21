@@ -136,25 +136,27 @@ export default function FeaturedProducts() {
               </div>
 
               {/* الوسوم */}
-              <div className="absolute top-2 right-2 flex flex-wrap gap-1.5 z-10">
-                {product.threeD && (
-                  <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                    3D
-                  </span>
-                )}
+              <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
+                {/* وسم الخصم */}
                 {(product.discount && product.discount > 0) || product.originalPrice ? (
-                  <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full">
-                    {product.discount 
-                      ? `${product.discount}%-` 
-                      : product.originalPrice 
-                        ? `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%-`
-                        : ''
-                    }
+                  <span className="px-2 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold rounded-md shadow-md flex items-center gap-1">
+                    🔥
+                    <span>
+                      {product.discount 
+                        ? `${product.discount}%` 
+                        : product.originalPrice 
+                          ? `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%`
+                          : ''
+                      }
+                    </span>
                   </span>
                 ) : null}
+                {/* وسم 3D */}
+                {product.threeD && (
+                  <span className="px-2 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-bold rounded-md shadow-md flex items-center gap-1">
+                    🎮 3D
+                  </span>
+                )}
               </div>
 
               {/* معلومات المنتج */}
