@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
       sketchfabId: body.sketchfabId || undefined,
       category: body.category,
       description: body.description,
+      descriptionAlign: body.descriptionAlign || 'right',
       rating: body.rating,
       originalPrice: body.originalPrice,
       isCustom: body.isCustom !== false,
@@ -135,6 +136,7 @@ export async function POST(request: NextRequest) {
         depth: body.dimensions.depth || undefined,
         unit: body.dimensions.unit || 'cm',
       } : undefined,
+      bedroomPieces: body.bedroomPieces || undefined,
       weight: body.weight || undefined,
       material: body.material || undefined,
       color: body.color || undefined,
@@ -218,6 +220,10 @@ export async function PUT(request: NextRequest) {
         unit: body.dimensions.unit || 'cm',
       };
     }
+    if (body.bedroomPieces !== undefined) {
+      product.bedroomPieces = body.bedroomPieces;
+    }
+    product.descriptionAlign = body.descriptionAlign !== undefined ? body.descriptionAlign : product.descriptionAlign;
     product.weight = body.weight !== undefined ? body.weight : product.weight;
     product.material = body.material !== undefined ? body.material : product.material;
     product.color = body.color !== undefined ? body.color : product.color;
