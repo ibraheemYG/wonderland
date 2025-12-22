@@ -7,6 +7,16 @@ export interface IDimensions {
   unit?: 'cm' | 'inch';
 }
 
+// أبعاد قطع غرفة النوم
+export interface IBedroomPieces {
+  bed?: IDimensions;           // السرير
+  wardrobe?: IDimensions;      // الخزانة
+  nightstand?: IDimensions;    // الكومودينو
+  dresser?: IDimensions;       // التسريحة
+  desk?: IDimensions;          // الميز/المكتب
+  mirror?: IDimensions;        // المرآة
+}
+
 export interface IProduct extends Document {
   id: string;
   name: string;
@@ -19,10 +29,12 @@ export interface IProduct extends Document {
   sketchfabId?: string; // معرف نموذج Sketchfab
   category: 'living-room' | 'bedroom' | 'kitchen' | 'bathroom' | 'decor' | 'appliances' | 'sale' | 'furnishings';
   description?: string;
+  descriptionAlign?: 'right' | 'left' | 'center'; // محاذاة الوصف
   rating?: number;
   originalPrice?: number;
   isCustom?: boolean;
   dimensions?: IDimensions;
+  bedroomPieces?: IBedroomPieces; // أبعاد قطع غرفة النوم
   weight?: number;
   material?: string;
   color?: string;
@@ -75,6 +87,11 @@ const ProductSchema = new Schema<IProduct>(
     description: {
       type: String,
     },
+    descriptionAlign: {
+      type: String,
+      enum: ['right', 'left', 'center'],
+      default: 'right',
+    },
     rating: {
       type: Number,
     },
@@ -90,6 +107,44 @@ const ProductSchema = new Schema<IProduct>(
       height: { type: Number },
       depth: { type: Number },
       unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+    },
+    bedroomPieces: {
+      bed: {
+        width: { type: Number },
+        height: { type: Number },
+        depth: { type: Number },
+        unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+      },
+      wardrobe: {
+        width: { type: Number },
+        height: { type: Number },
+        depth: { type: Number },
+        unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+      },
+      nightstand: {
+        width: { type: Number },
+        height: { type: Number },
+        depth: { type: Number },
+        unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+      },
+      dresser: {
+        width: { type: Number },
+        height: { type: Number },
+        depth: { type: Number },
+        unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+      },
+      desk: {
+        width: { type: Number },
+        height: { type: Number },
+        depth: { type: Number },
+        unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+      },
+      mirror: {
+        width: { type: Number },
+        height: { type: Number },
+        depth: { type: Number },
+        unit: { type: String, enum: ['cm', 'inch'], default: 'cm' },
+      },
     },
     weight: {
       type: Number,

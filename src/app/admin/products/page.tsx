@@ -13,6 +13,15 @@ interface Dimensions {
   unit: 'cm' | 'inch';
 }
 
+interface BedroomPieces {
+  bed?: Dimensions;
+  wardrobe?: Dimensions;
+  nightstand?: Dimensions;
+  dresser?: Dimensions;
+  desk?: Dimensions;
+  mirror?: Dimensions;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -21,12 +30,14 @@ interface Product {
   quantity: number;
   discount?: number;
   description: string;
+  descriptionAlign?: 'right' | 'left' | 'center';
   images: string[];
   mainImageIndex?: number;
   videos?: string[];
   threeD?: string;
   sketchfabId?: string;
   dimensions?: Dimensions;
+  bedroomPieces?: BedroomPieces;
   weight?: number;
   material?: string;
   color?: string;
@@ -59,6 +70,7 @@ export default function ProductsPage() {
     quantity: 0,
     discount: 0,
     description: '',
+    descriptionAlign: 'right' as 'right' | 'left' | 'center',
     images: [] as string[],
     mainImageIndex: 0,
     videos: [] as string[],
@@ -70,6 +82,14 @@ export default function ProductsPage() {
       height: 0,
       depth: 0,
       unit: 'cm' as 'cm' | 'inch',
+    },
+    bedroomPieces: {
+      bed: { width: 0, height: 0, depth: 0, unit: 'cm' as 'cm' | 'inch' },
+      wardrobe: { width: 0, height: 0, depth: 0, unit: 'cm' as 'cm' | 'inch' },
+      nightstand: { width: 0, height: 0, depth: 0, unit: 'cm' as 'cm' | 'inch' },
+      dresser: { width: 0, height: 0, depth: 0, unit: 'cm' as 'cm' | 'inch' },
+      desk: { width: 0, height: 0, depth: 0, unit: 'cm' as 'cm' | 'inch' },
+      mirror: { width: 0, height: 0, depth: 0, unit: 'cm' as 'cm' | 'inch' },
     },
     weight: 0,
     material: '',
@@ -230,6 +250,7 @@ export default function ProductsPage() {
         quantity: parseInt(form.quantity.toString()),
         discount: form.discount ? parseFloat(form.discount.toString()) : 0,
         description: form.description,
+        descriptionAlign: form.descriptionAlign,
         images: form.images,
         mainImageIndex: form.mainImageIndex,
         videos: form.videos,
@@ -241,6 +262,14 @@ export default function ProductsPage() {
           depth: form.dimensions.depth || undefined,
           unit: form.dimensions.unit,
         },
+        bedroomPieces: form.category === 'bedroom' ? {
+          bed: form.bedroomPieces.bed.width || form.bedroomPieces.bed.height ? form.bedroomPieces.bed : undefined,
+          wardrobe: form.bedroomPieces.wardrobe.width || form.bedroomPieces.wardrobe.height ? form.bedroomPieces.wardrobe : undefined,
+          nightstand: form.bedroomPieces.nightstand.width || form.bedroomPieces.nightstand.height ? form.bedroomPieces.nightstand : undefined,
+          dresser: form.bedroomPieces.dresser.width || form.bedroomPieces.dresser.height ? form.bedroomPieces.dresser : undefined,
+          desk: form.bedroomPieces.desk.width || form.bedroomPieces.desk.height ? form.bedroomPieces.desk : undefined,
+          mirror: form.bedroomPieces.mirror.width || form.bedroomPieces.mirror.height ? form.bedroomPieces.mirror : undefined,
+        } : undefined,
         weight: form.weight || undefined,
         material: form.material || undefined,
         color: form.color || undefined,
@@ -304,6 +333,7 @@ export default function ProductsPage() {
         quantity: 0,
         discount: 0,
         description: '',
+        descriptionAlign: 'right',
         images: [],
         mainImageIndex: 0,
         videos: [],
@@ -311,6 +341,14 @@ export default function ProductsPage() {
         threeD: '',
         sketchfabId: '',
         dimensions: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        bedroomPieces: {
+          bed: { width: 0, height: 0, depth: 0, unit: 'cm' },
+          wardrobe: { width: 0, height: 0, depth: 0, unit: 'cm' },
+          nightstand: { width: 0, height: 0, depth: 0, unit: 'cm' },
+          dresser: { width: 0, height: 0, depth: 0, unit: 'cm' },
+          desk: { width: 0, height: 0, depth: 0, unit: 'cm' },
+          mirror: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        },
         weight: 0,
         material: '',
         color: '',
@@ -348,6 +386,7 @@ export default function ProductsPage() {
       quantity: product.quantity || 0,
       discount: product.discount || 0,
       description: product.description || '',
+      descriptionAlign: product.descriptionAlign || 'right',
       images: product.images || [],
       mainImageIndex: product.mainImageIndex || 0,
       videos: product.videos || [],
@@ -359,6 +398,44 @@ export default function ProductsPage() {
         height: product.dimensions?.height || 0,
         depth: product.dimensions?.depth || 0,
         unit: product.dimensions?.unit || 'cm',
+      },
+      bedroomPieces: {
+        bed: { 
+          width: product.bedroomPieces?.bed?.width || 0, 
+          height: product.bedroomPieces?.bed?.height || 0, 
+          depth: product.bedroomPieces?.bed?.depth || 0, 
+          unit: product.bedroomPieces?.bed?.unit || 'cm' 
+        },
+        wardrobe: { 
+          width: product.bedroomPieces?.wardrobe?.width || 0, 
+          height: product.bedroomPieces?.wardrobe?.height || 0, 
+          depth: product.bedroomPieces?.wardrobe?.depth || 0, 
+          unit: product.bedroomPieces?.wardrobe?.unit || 'cm' 
+        },
+        nightstand: { 
+          width: product.bedroomPieces?.nightstand?.width || 0, 
+          height: product.bedroomPieces?.nightstand?.height || 0, 
+          depth: product.bedroomPieces?.nightstand?.depth || 0, 
+          unit: product.bedroomPieces?.nightstand?.unit || 'cm' 
+        },
+        dresser: { 
+          width: product.bedroomPieces?.dresser?.width || 0, 
+          height: product.bedroomPieces?.dresser?.height || 0, 
+          depth: product.bedroomPieces?.dresser?.depth || 0, 
+          unit: product.bedroomPieces?.dresser?.unit || 'cm' 
+        },
+        desk: { 
+          width: product.bedroomPieces?.desk?.width || 0, 
+          height: product.bedroomPieces?.desk?.height || 0, 
+          depth: product.bedroomPieces?.desk?.depth || 0, 
+          unit: product.bedroomPieces?.desk?.unit || 'cm' 
+        },
+        mirror: { 
+          width: product.bedroomPieces?.mirror?.width || 0, 
+          height: product.bedroomPieces?.mirror?.height || 0, 
+          depth: product.bedroomPieces?.mirror?.depth || 0, 
+          unit: product.bedroomPieces?.mirror?.unit || 'cm' 
+        },
       },
       weight: product.weight || 0,
       material: product.material || '',
@@ -378,6 +455,7 @@ export default function ProductsPage() {
       quantity: 0,
       discount: 0,
       description: '',
+      descriptionAlign: 'right',
       images: [],
       mainImageIndex: 0,
       videos: [],
@@ -385,6 +463,14 @@ export default function ProductsPage() {
       threeD: '',
       sketchfabId: '',
       dimensions: { width: 0, height: 0, depth: 0, unit: 'cm' },
+      bedroomPieces: {
+        bed: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        wardrobe: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        nightstand: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        dresser: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        desk: { width: 0, height: 0, depth: 0, unit: 'cm' },
+        mirror: { width: 0, height: 0, depth: 0, unit: 'cm' },
+      },
       weight: 0,
       material: '',
       color: '',
@@ -581,16 +667,232 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {/* الوصف */}
+              {/* الوصف مع التحكم بالمحاذاة */}
               <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">الوصف</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-white/80 text-sm font-medium">الوصف</label>
+                  <div className="flex gap-1 bg-white/5 rounded-lg p-1">
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, descriptionAlign: 'right'})}
+                      className={`p-1.5 rounded transition-all ${form.descriptionAlign === 'right' ? 'bg-primary text-white' : 'text-white/50 hover:text-white'}`}
+                      title="محاذاة لليمين"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h8a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, descriptionAlign: 'center'})}
+                      className={`p-1.5 rounded transition-all ${form.descriptionAlign === 'center' ? 'bg-primary text-white' : 'text-white/50 hover:text-white'}`}
+                      title="محاذاة للوسط"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zm2 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm-2 4a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zm2 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, descriptionAlign: 'left'})}
+                      className={`p-1.5 rounded transition-all ${form.descriptionAlign === 'left' ? 'bg-primary text-white' : 'text-white/50 hover:text-white'}`}
+                      title="محاذاة لليسار"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm4 4a1 1 0 011-1h8a1 1 0 110 2H8a1 1 0 01-1-1zm-4 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({...form, description: e.target.value})}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-400 resize-none h-28 transition-all"
                   placeholder="وصف تفصيلي للمنتج..."
+                  style={{ textAlign: form.descriptionAlign }}
+                  dir="auto"
                 />
+                <p className="text-white/40 text-xs mt-1">يدعم العربية والإنجليزية - اختر المحاذاة المناسبة</p>
               </div>
+
+              {/* أبعاد قطع غرف النوم */}
+              {form.category === 'bedroom' && (
+                <div className="p-4 bg-purple-500/10 border border-purple-400/20 rounded-xl space-y-4">
+                  <label className="block text-purple-300 text-sm font-medium flex items-center gap-2">
+                    🛏️ أبعاد قطع غرفة النوم (اختياري)
+                  </label>
+                  
+                  {/* السرير */}
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white/70 text-sm mb-2 flex items-center gap-2">🛏️ السرير</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.bed.width || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, bed: {...form.bedroomPieces.bed, width: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العرض"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.bed.height || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, bed: {...form.bedroomPieces.bed, height: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="الارتفاع"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.bed.depth || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, bed: {...form.bedroomPieces.bed, depth: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العمق"
+                      />
+                    </div>
+                  </div>
+
+                  {/* الخزانة */}
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white/70 text-sm mb-2 flex items-center gap-2">🚪 الخزانة</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.wardrobe.width || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, wardrobe: {...form.bedroomPieces.wardrobe, width: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العرض"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.wardrobe.height || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, wardrobe: {...form.bedroomPieces.wardrobe, height: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="الارتفاع"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.wardrobe.depth || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, wardrobe: {...form.bedroomPieces.wardrobe, depth: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العمق"
+                      />
+                    </div>
+                  </div>
+
+                  {/* الكومودينو */}
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white/70 text-sm mb-2 flex items-center gap-2">🪑 الكومودينو</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.nightstand.width || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, nightstand: {...form.bedroomPieces.nightstand, width: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العرض"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.nightstand.height || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, nightstand: {...form.bedroomPieces.nightstand, height: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="الارتفاع"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.nightstand.depth || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, nightstand: {...form.bedroomPieces.nightstand, depth: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العمق"
+                      />
+                    </div>
+                  </div>
+
+                  {/* التسريحة */}
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white/70 text-sm mb-2 flex items-center gap-2">💄 التسريحة</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.dresser.width || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, dresser: {...form.bedroomPieces.dresser, width: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العرض"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.dresser.height || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, dresser: {...form.bedroomPieces.dresser, height: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="الارتفاع"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.dresser.depth || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, dresser: {...form.bedroomPieces.dresser, depth: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العمق"
+                      />
+                    </div>
+                  </div>
+
+                  {/* الميز/المكتب */}
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white/70 text-sm mb-2 flex items-center gap-2">📚 الميز/المكتب</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.desk.width || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, desk: {...form.bedroomPieces.desk, width: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العرض"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.desk.height || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, desk: {...form.bedroomPieces.desk, height: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="الارتفاع"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.desk.depth || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, desk: {...form.bedroomPieces.desk, depth: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العمق"
+                      />
+                    </div>
+                  </div>
+
+                  {/* المرآة */}
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white/70 text-sm mb-2 flex items-center gap-2">🪞 المرآة</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.mirror.width || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, mirror: {...form.bedroomPieces.mirror, width: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العرض"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.mirror.height || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, mirror: {...form.bedroomPieces.mirror, height: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="الارتفاع"
+                      />
+                      <input
+                        type="number"
+                        value={form.bedroomPieces.mirror.depth || ''}
+                        onChange={(e) => setForm({...form, bedroomPieces: {...form.bedroomPieces, mirror: {...form.bedroomPieces.mirror, depth: parseFloat(e.target.value) || 0}}})}
+                        className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm"
+                        placeholder="العمق"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-white/40 text-xs">جميع الأبعاد بالسنتيمتر (سم)</p>
+                </div>
+              )}
 
               {/* Sketchfab 3D Model */}
               <div className="p-4 bg-purple-500/10 border border-purple-400/20 rounded-xl">

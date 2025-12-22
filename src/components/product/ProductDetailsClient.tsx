@@ -15,6 +15,15 @@ interface Dimensions {
   unit?: 'cm' | 'inch';
 }
 
+interface BedroomPieces {
+  bed?: Dimensions;
+  wardrobe?: Dimensions;
+  nightstand?: Dimensions;
+  dresser?: Dimensions;
+  desk?: Dimensions;
+  mirror?: Dimensions;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -24,11 +33,13 @@ interface Product {
   originalPrice?: number;
   category: string;
   description?: string;
+  descriptionAlign?: 'right' | 'left' | 'center';
   images?: string[];
   videos?: string[];
   threeD?: string;
   sketchfabId?: string;
   dimensions?: Dimensions;
+  bedroomPieces?: BedroomPieces;
   weight?: number;
   material?: string;
   color?: string;
@@ -154,7 +165,11 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
             )}
           </div>
 
-          <p className="text-foreground/80 leading-8">
+          <p 
+            className="text-foreground/80 leading-8"
+            style={{ textAlign: product.descriptionAlign || 'right' }}
+            dir="auto"
+          >
             {product.description ?? 'منتج عالي الجودة بتفاصيل عصرية وخامات مختارة بعناية ليمنح منزلك مظهراً أنيقاً ووظائف عملية.'}
           </p>
 
@@ -213,6 +228,112 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
                 </div>
               )}
             </div>
+
+            {/* أبعاد قطع غرفة النوم */}
+            {product.category === 'bedroom' && product.bedroomPieces && (
+              <div className="mt-4 pt-4 border-t border-secondary">
+                <h4 className="text-md font-semibold text-foreground mb-3 flex items-center gap-2">
+                  🛏️ أبعاد القطع
+                </h4>
+                <div className="grid gap-3">
+                  {product.bedroomPieces.bed && (product.bedroomPieces.bed.width || product.bedroomPieces.bed.height) && (
+                    <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <span className="text-lg">🛏️</span>
+                      <div className="flex-1">
+                        <p className="text-foreground/60 text-sm">السرير</p>
+                        <p className="font-medium text-foreground text-sm">
+                          {[
+                            product.bedroomPieces.bed.width && `${product.bedroomPieces.bed.width}`,
+                            product.bedroomPieces.bed.height && `${product.bedroomPieces.bed.height}`,
+                            product.bedroomPieces.bed.depth && `${product.bedroomPieces.bed.depth}`
+                          ].filter(Boolean).join(' × ')} سم
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {product.bedroomPieces.wardrobe && (product.bedroomPieces.wardrobe.width || product.bedroomPieces.wardrobe.height) && (
+                    <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <span className="text-lg">🚪</span>
+                      <div className="flex-1">
+                        <p className="text-foreground/60 text-sm">الخزانة</p>
+                        <p className="font-medium text-foreground text-sm">
+                          {[
+                            product.bedroomPieces.wardrobe.width && `${product.bedroomPieces.wardrobe.width}`,
+                            product.bedroomPieces.wardrobe.height && `${product.bedroomPieces.wardrobe.height}`,
+                            product.bedroomPieces.wardrobe.depth && `${product.bedroomPieces.wardrobe.depth}`
+                          ].filter(Boolean).join(' × ')} سم
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {product.bedroomPieces.nightstand && (product.bedroomPieces.nightstand.width || product.bedroomPieces.nightstand.height) && (
+                    <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <span className="text-lg">🪑</span>
+                      <div className="flex-1">
+                        <p className="text-foreground/60 text-sm">الكومودينو</p>
+                        <p className="font-medium text-foreground text-sm">
+                          {[
+                            product.bedroomPieces.nightstand.width && `${product.bedroomPieces.nightstand.width}`,
+                            product.bedroomPieces.nightstand.height && `${product.bedroomPieces.nightstand.height}`,
+                            product.bedroomPieces.nightstand.depth && `${product.bedroomPieces.nightstand.depth}`
+                          ].filter(Boolean).join(' × ')} سم
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {product.bedroomPieces.dresser && (product.bedroomPieces.dresser.width || product.bedroomPieces.dresser.height) && (
+                    <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <span className="text-lg">💄</span>
+                      <div className="flex-1">
+                        <p className="text-foreground/60 text-sm">التسريحة</p>
+                        <p className="font-medium text-foreground text-sm">
+                          {[
+                            product.bedroomPieces.dresser.width && `${product.bedroomPieces.dresser.width}`,
+                            product.bedroomPieces.dresser.height && `${product.bedroomPieces.dresser.height}`,
+                            product.bedroomPieces.dresser.depth && `${product.bedroomPieces.dresser.depth}`
+                          ].filter(Boolean).join(' × ')} سم
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {product.bedroomPieces.desk && (product.bedroomPieces.desk.width || product.bedroomPieces.desk.height) && (
+                    <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <span className="text-lg">📚</span>
+                      <div className="flex-1">
+                        <p className="text-foreground/60 text-sm">الميز/المكتب</p>
+                        <p className="font-medium text-foreground text-sm">
+                          {[
+                            product.bedroomPieces.desk.width && `${product.bedroomPieces.desk.width}`,
+                            product.bedroomPieces.desk.height && `${product.bedroomPieces.desk.height}`,
+                            product.bedroomPieces.desk.depth && `${product.bedroomPieces.desk.depth}`
+                          ].filter(Boolean).join(' × ')} سم
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {product.bedroomPieces.mirror && (product.bedroomPieces.mirror.width || product.bedroomPieces.mirror.height) && (
+                    <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <span className="text-lg">🪞</span>
+                      <div className="flex-1">
+                        <p className="text-foreground/60 text-sm">المرآة</p>
+                        <p className="font-medium text-foreground text-sm">
+                          {[
+                            product.bedroomPieces.mirror.width && `${product.bedroomPieces.mirror.width}`,
+                            product.bedroomPieces.mirror.height && `${product.bedroomPieces.mirror.height}`,
+                            product.bedroomPieces.mirror.depth && `${product.bedroomPieces.mirror.depth}`
+                          ].filter(Boolean).join(' × ')} سم
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* رسالة إذا لم تكن هناك مواصفات */}
             {!product.color && !product.material && !product.weight && !product.dimensions && (
