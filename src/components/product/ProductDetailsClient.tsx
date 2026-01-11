@@ -57,6 +57,7 @@ interface Review {
   rating: number;
   comment: string;
   createdAt: string;
+  images?: string[];
 }
 
 export default function ProductDetailsClient({ productId }: ProductDetailsClientProps) {
