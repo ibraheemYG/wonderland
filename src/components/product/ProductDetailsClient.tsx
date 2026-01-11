@@ -698,7 +698,7 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
                   </div>
                   
                   {/* زر الحذف لصاحب التقييم */}
-                  {user && (user.id === review.userId || user.email === review.userId) && (
+                  {user && (String(user.id) === String(review.userId) || user.email === review.userId) && (
                     <button
                       onClick={() => handleDeleteReview(review._id)}
                       className="text-red-400 hover:text-red-500 text-sm"
