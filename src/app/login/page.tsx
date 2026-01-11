@@ -112,42 +112,42 @@ export default function LoginPage() {
   // No username/password flow anymore
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4 py-20">
       <div className="w-full max-w-md">
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20">
+        <div className="glass-card rounded-3xl shadow-2xl p-8 border border-white/20 dark:border-white/10">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Wonderland</h1>
-            <p className="text-white/70">تسجيل الدخول عبر Google</p>
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-amber-400 to-orange-500 bg-clip-text text-transparent mb-3">✨ Wonderland</h1>
+            <p className="text-foreground/60">تسجيل الدخول عبر Google</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-500/20 border border-red-400/50 rounded-lg p-3 mb-6 text-red-100 text-sm">
+            <div className="glass-subtle bg-red-500/10 border border-red-400/30 rounded-2xl p-4 mb-6 text-red-500 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
 
           {/* Google Sign-In Only */}
           {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? (
-            <div className="bg-white rounded-lg p-4 flex justify-center">
+            <div className="glass-subtle rounded-2xl p-5 flex justify-center">
               <div id="google-sign-in-button" style={{ width: '100%' }}></div>
             </div>
           ) : (
-            <div className="bg-yellow-500/20 border border-yellow-400/50 rounded-lg p-4 text-yellow-100 text-sm">
+            <div className="glass-subtle bg-yellow-500/10 border border-yellow-400/30 rounded-2xl p-4 text-yellow-600 dark:text-yellow-400 text-sm">
               لم يتم ضبط Google Client ID. الرجاء إضافة NEXT_PUBLIC_GOOGLE_CLIENT_ID إلى متغيرات البيئة.
             </div>
           )}
 
           {/* Help text */}
-          <div className="text-center mt-6 text-white/60 text-sm">
+          <div className="text-center mt-8 text-foreground/50 text-sm">
             بالدخول عبر Google سيتم توجيهك لإكمال ملفك الشخصي.
           </div>
         </div>
 
         {/* Back Link */}
-        <div className="text-center mt-6">
-          <Link href="/" className="text-white/60 hover:text-white transition">
+        <div className="text-center mt-8">
+          <Link href="/" className="text-foreground/50 hover:text-primary transition-colors">
             ← العودة إلى الرئيسية
           </Link>
         </div>

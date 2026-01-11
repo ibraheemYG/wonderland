@@ -38,6 +38,10 @@ export interface IProduct extends Document {
   weight?: number;
   material?: string;
   color?: string;
+  // حقول إدارة المخزون
+  quantity?: number; // الكمية المتاحة
+  lowStockThreshold?: number; // حد التنبيه للمخزون المنخفض
+  sku?: string; // رقم المنتج
   createdAt: Date;
   updatedAt: Date;
 }
@@ -153,6 +157,18 @@ const ProductSchema = new Schema<IProduct>(
       type: String,
     },
     color: {
+      type: String,
+    },
+    // حقول إدارة المخزون
+    quantity: {
+      type: Number,
+      default: 0,
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 5,
+    },
+    sku: {
       type: String,
     },
   },

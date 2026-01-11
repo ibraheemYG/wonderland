@@ -9,6 +9,12 @@ export interface IOrderItem {
   image?: string;
 }
 
+export interface IStatusHistory {
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  date: Date;
+  note?: string;
+}
+
 export interface IOrder extends Document {
   orderNumber: string;
   userId: string;
@@ -29,6 +35,9 @@ export interface IOrder extends Document {
   shippingCost: number;
   total: number;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  statusHistory: IStatusHistory[];
+  estimatedDelivery?: Date;
+  trackingNumber?: string;
   paymentMethod: 'cash_on_delivery' | 'online';
   paymentStatus: 'pending' | 'paid' | 'failed';
   notes?: string;
@@ -100,6 +109,17 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
       default: 'pending',
+    },
+    statusHistory: [{
+      status: { type: String, enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'] },
+      date: { type: Date, default: Date.now },
+      note: { type: String },
+    }],
+    estimatedDelivery: {
+      type: Date,
+    },
+    trackingNumber: {
+      type: String,
     },
     paymentMethod: {
       type: String,

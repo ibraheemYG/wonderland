@@ -6,6 +6,9 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { WishlistProvider } from "@/context/WishlistContext";
+import { CompareProvider } from "@/context/CompareContext";
+import { RecentlyViewedProvider } from "@/context/RecentlyViewedContext";
 import ClientLayout from "@/components/layout/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -27,9 +30,15 @@ export default function RootLayout({
           <ThemeProvider>
             <AnalyticsProvider>
               <NotificationProvider>
-                <CartProvider>
-                  <ClientLayout>{children}</ClientLayout>
-                </CartProvider>
+                <WishlistProvider>
+                  <CompareProvider>
+                    <RecentlyViewedProvider>
+                      <CartProvider>
+                        <ClientLayout>{children}</ClientLayout>
+                      </CartProvider>
+                    </RecentlyViewedProvider>
+                  </CompareProvider>
+                </WishlistProvider>
               </NotificationProvider>
             </AnalyticsProvider>
           </ThemeProvider>

@@ -124,17 +124,17 @@ function CompleteProfileContent() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12 px-4">
+    <main className="min-h-screen py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">👤 إكمال البيانات الشخصية</h1>
-          <p className="text-white/70">ساعدنا بمعلومات إضافية لتحسين تجربتك</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-amber-400 to-orange-500 bg-clip-text text-transparent mb-2">👤 إكمال البيانات الشخصية</h1>
+          <p className="text-foreground/70">ساعدنا بمعلومات إضافية لتحسين تجربتك</p>
         </div>
 
         {/* Error Message */}
         {errorMessage && (
-          <div className="mb-6 p-4 bg-red-500/20 border border-red-400 rounded-lg text-red-100">
+          <div className="mb-6 p-4 glass-card bg-red-500/10 border border-red-400/30 rounded-2xl text-red-400">
             {errorMessage}
           </div>
         )}
@@ -142,50 +142,50 @@ function CompleteProfileContent() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
-            <label className="block text-white font-semibold mb-2">الاسم الكامل *</label>
+          <div className="glass-card rounded-2xl p-6 shadow-xl">
+            <label className="block text-foreground font-semibold mb-2">الاسم الكامل *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="أدخل اسمك الكامل"
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 glass-input rounded-xl text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
               required
             />
           </div>
 
           {/* Email */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
-            <label className="block text-white font-semibold mb-2">البريد الإلكتروني *</label>
+          <div className="glass-card rounded-2xl p-6 shadow-xl">
+            <label className="block text-foreground font-semibold mb-2">البريد الإلكتروني *</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="أدخل بريدك الإلكتروني"
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 glass-input rounded-xl text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
               required
             />
           </div>
 
           {/* Phone */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
-            <label className="block text-white font-semibold mb-2">رقم الهاتف</label>
+          <div className="glass-card rounded-2xl p-6 shadow-xl">
+            <label className="block text-foreground font-semibold mb-2">رقم الهاتف</label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="أدخل رقم هاتفك (اختياري)"
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 glass-input rounded-xl text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
           {/* Country */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
-            <label className="block text-white font-semibold mb-2">الدولة *</label>
+          <div className="glass-card rounded-2xl p-6 shadow-xl">
+            <label className="block text-foreground font-semibold mb-2">الدولة *</label>
             <select
               value={formData.country}
               onChange={(e) => handleInputChange('country', e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-3 glass-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               required
             >
               <option value="">اختر دولتك...</option>
@@ -198,21 +198,21 @@ function CompleteProfileContent() {
           </div>
 
           {/* Furniture Preferences */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
-            <label className="block text-white font-semibold mb-4">🏠 اهتماماتك في الأثاث (اختياري)</label>
+          <div className="glass-card rounded-2xl p-6 shadow-xl">
+            <label className="block text-foreground font-semibold mb-4">🏠 اهتماماتك في الأثاث (اختياري)</label>
             <div className="space-y-3">
               {furnitureOptions.map((option) => (
                 <label
                   key={option}
-                  className="flex items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer transition"
+                  className="flex items-center p-4 glass-subtle rounded-xl hover:bg-white/10 cursor-pointer transition"
                 >
                   <input
                     type="checkbox"
                     checked={formData.furniturePreferences.includes(option)}
                     onChange={() => handleCheckboxChange(option)}
-                    className="w-5 h-5 rounded text-blue-600 cursor-pointer"
+                    className="w-5 h-5 rounded accent-primary cursor-pointer"
                   />
-                  <span className="text-white ml-3">{option}</span>
+                  <span className="text-foreground mr-3">{option}</span>
                 </label>
               ))}
             </div>
@@ -223,13 +223,13 @@ function CompleteProfileContent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition font-semibold"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition font-semibold shadow-lg shadow-green-500/30"
             >
               {isSubmitting ? '⏳ جاري الحفظ...' : '✅ إكمال التسجيل'}
             </button>
             <Link
               href="/"
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition border border-white/20 text-center"
+              className="px-6 py-3 glass-subtle hover:bg-white/15 text-foreground rounded-xl transition text-center"
             >
               الرئيسية
             </Link>
@@ -242,7 +242,7 @@ function CompleteProfileContent() {
 
 export default function CompleteProfePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-foreground/70">جاري التحميل...</div>}>
       <CompleteProfileContent />
     </Suspense>
   );

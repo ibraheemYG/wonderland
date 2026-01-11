@@ -8,3 +8,6 @@ export function formatIQD(amount: number): string {
 // للتوافق مع الكود القديم
 export const formatIQDFromUSD = formatIQD;
 export const convertUsdToIqd = (amount: number) => amount;
+
+// للتوافق مع الاستيرادات الجديدة
+export const formatCurrency = formatIQD;

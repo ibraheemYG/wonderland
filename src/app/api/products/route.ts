@@ -21,14 +21,11 @@ export async function GET(request: NextRequest) {
       }
       
       if (!product) {
-        console.log('❌ Product not found for id:', id);
         return NextResponse.json(
           { success: false, message: 'Product not found' },
           { status: 404 }
         );
       }
-
-      console.log('✅ Product fetched by id:', id);
 
       return NextResponse.json({
         success: true,
@@ -45,7 +42,7 @@ export async function GET(request: NextRequest) {
     // هذا أسرع بكثير لأنه يتجنب overhead الـ Mongoose
     let cursor = Product.find(query)
       .sort({ createdAt: -1 })
-      .select('id _id name price imageUrl images category rating originalPrice') // جلب الحقول المطلوبة فقط
+      .select('id _id name price imageUrl images category rating originalPrice threeD discount') // جلب الحقول المطلوبة فقط
       .lean();
 
     if (limitParam) {
@@ -62,8 +59,6 @@ export async function GET(request: NextRequest) {
       ...p,
       id: p.id || p._id?.toString(),
     }));
-
-    console.log('✅ Products fetched from MongoDB:', productsWithId.length);
 
     // إضافة Cache headers لتسريع الطلبات المتكررة
     const response = NextResponse.json({
@@ -144,8 +139,6 @@ export async function POST(request: NextRequest) {
     
     await newProduct.save();
     
-    console.log('✅ Product created:', newProduct.id);
-    
     return NextResponse.json({
       success: true,
       data: newProduct,
@@ -204,8 +197,6 @@ export async function PUT(request: NextRequest) {
     product.threeD = body.threeD !== undefined ? body.threeD : product.threeD;
     product.sketchfabId = body.sketchfabId !== undefined ? body.sketchfabId : product.sketchfabId;
     
-    console.log('📥 Received videos:', body.videos, 'threeD:', body.threeD);
-    console.log('📦 Saving videos:', product.videos, 'threeD:', product.threeD);
     product.category = body.category || product.category;
     product.description = body.description !== undefined ? body.description : product.description;
     product.quantity = body.quantity ?? product.quantity;
@@ -229,8 +220,6 @@ export async function PUT(request: NextRequest) {
     product.color = body.color !== undefined ? body.color : product.color;
     
     await product.save();
-    
-    console.log('✅ Product updated:', id);
     
     return NextResponse.json({
       success: true,
@@ -267,8 +256,6 @@ export async function DELETE(request: NextRequest) {
         { status: 404 }
       );
     }
-    
-    console.log('✅ Product deleted:', id);
     
     return NextResponse.json({
       success: true,

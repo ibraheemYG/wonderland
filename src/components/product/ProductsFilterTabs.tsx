@@ -56,8 +56,8 @@ export default function ProductsFilterTabs({ options = defaultOptions }: { optio
               href={href}
               className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                 isActive
-                  ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/30 ring-2 ring-primary/20'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:bg-primary/5 hover:text-primary'
+                  ? 'glass-button text-white shadow-lg shadow-primary/30 ring-2 ring-primary/20'
+                  : 'glass-subtle text-foreground/70 border border-white/20 dark:border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary'
               }`}
             >
               {option.label}

@@ -28,6 +28,8 @@ interface Product {
   category: string;
   price: number;
   quantity: number;
+  lowStockThreshold?: number;
+  sku?: string;
   discount?: number;
   description: string;
   descriptionAlign?: 'right' | 'left' | 'center';
@@ -68,6 +70,8 @@ export default function ProductsPage() {
     category: 'living-room',
     price: 0,
     quantity: 0,
+    lowStockThreshold: 5,
+    sku: '',
     discount: 0,
     description: '',
     descriptionAlign: 'right' as 'right' | 'left' | 'center',
@@ -248,6 +252,8 @@ export default function ProductsPage() {
         category: form.category,
         price: parseFloat(form.price.toString()),
         quantity: parseInt(form.quantity.toString()),
+        lowStockThreshold: form.lowStockThreshold || 5,
+        sku: form.sku || undefined,
         discount: form.discount ? parseFloat(form.discount.toString()) : 0,
         description: form.description,
         descriptionAlign: form.descriptionAlign,
@@ -331,6 +337,8 @@ export default function ProductsPage() {
         category: 'living-room',
         price: 0,
         quantity: 0,
+        lowStockThreshold: 5,
+        sku: '',
         discount: 0,
         description: '',
         descriptionAlign: 'right',
@@ -384,6 +392,8 @@ export default function ProductsPage() {
       category: product.category,
       price: product.price,
       quantity: product.quantity || 0,
+      lowStockThreshold: product.lowStockThreshold || 5,
+      sku: product.sku || '',
       discount: product.discount || 0,
       description: product.description || '',
       descriptionAlign: product.descriptionAlign || 'right',
@@ -453,6 +463,8 @@ export default function ProductsPage() {
       category: 'living-room',
       price: 0,
       quantity: 0,
+      lowStockThreshold: 5,
+      sku: '',
       discount: 0,
       description: '',
       descriptionAlign: 'right',
@@ -565,6 +577,41 @@ export default function ProductsPage() {
                     min="0"
                   />
                 </div>
+              </div>
+
+              {/* إدارة المخزون */}
+              <div className="p-4 bg-orange-500/10 border border-orange-400/20 rounded-xl">
+                <label className="block text-orange-300 text-sm font-medium mb-3 flex items-center gap-2">
+                  📦 إدارة المخزون
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white/60 text-xs mb-1">رقم المنتج (SKU)</label>
+                    <input
+                      type="text"
+                      value={form.sku || ''}
+                      onChange={(e) => setForm({...form, sku: e.target.value})}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-orange-400 transition-all"
+                      placeholder="WL-001"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white/60 text-xs mb-1">حد التنبيه للمخزون المنخفض</label>
+                    <input
+                      type="number"
+                      value={form.lowStockThreshold || ''}
+                      onChange={(e) => setForm({...form, lowStockThreshold: parseInt(e.target.value) || 5})}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-orange-400 transition-all"
+                      placeholder="5"
+                      min="0"
+                    />
+                  </div>
+                </div>
+                {form.quantity > 0 && form.quantity <= form.lowStockThreshold && (
+                  <div className="mt-3 p-2 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center gap-2">
+                    <span className="text-red-400 text-sm">⚠️ المخزون منخفض!</span>
+                  </div>
+                )}
               </div>
 
               {/* الخصم */}
@@ -1304,10 +1351,28 @@ export default function ProductsPage() {
                   <div className="p-4">
                     <h3 className="text-white font-semibold mb-1 line-clamp-1">{product.name}</h3>
                     <p className="text-white/50 text-sm mb-3 line-clamp-2">{product.description || 'بدون وصف'}</p>
-                    <div className="flex justify-between items-center text-sm mb-4">
+                    <div className="flex justify-between items-center text-sm mb-2">
                       <span className="text-green-400 font-bold">${product.price}</span>
-                      <span className="text-white/50">{product.quantity} قطعة</span>
+                      <span className={`${product.quantity <= (product.lowStockThreshold || 5) ? 'text-red-400' : 'text-white/50'}`}>
+                        {product.quantity} قطعة
+                      </span>
                     </div>
+                    {/* تنبيه المخزون المنخفض */}
+                    {product.quantity > 0 && product.quantity <= (product.lowStockThreshold || 5) && (
+                      <div className="mb-2 px-2 py-1 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-xs flex items-center gap-1">
+                        ⚠️ مخزون منخفض
+                      </div>
+                    )}
+                    {product.quantity === 0 && (
+                      <div className="mb-2 px-2 py-1 bg-gray-500/20 border border-gray-500/30 rounded-lg text-gray-400 text-xs flex items-center gap-1">
+                        ❌ نفد من المخزون
+                      </div>
+                    )}
+                    {product.sku && (
+                      <div className="text-xs text-white/40 mb-2">
+                        SKU: {product.sku}
+                      </div>
+                    )}
                     {product.dimensions?.width && (
                       <div className="text-xs text-white/40 mb-3">
                         📐 {product.dimensions.width}×{product.dimensions.height}×{product.dimensions.depth} {product.dimensions.unit}

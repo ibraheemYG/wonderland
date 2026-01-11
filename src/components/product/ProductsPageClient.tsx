@@ -4,9 +4,17 @@ import React, { useCallback, useEffect, useMemo, useState, useLayoutEffect, useR
 import ProductCard from '@/components/product/ProductCard';
 import ProductsFilterTabs, { FilterOption } from '@/components/product/ProductsFilterTabs';
 import Breadcrumbs, { BreadcrumbItem } from '@/components/common/Breadcrumbs';
-import { List, SlidersHorizontal } from 'lucide-react';
+import { List, SlidersHorizontal, X, Search, Filter } from 'lucide-react';
 
-type SortOption = 'newest' | 'price-asc' | 'price-desc';
+type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'rating';
+
+interface AdvancedFilters {
+  minPrice: number;
+  maxPrice: number;
+  has3D: boolean;
+  hasDiscount: boolean;
+  searchQuery: string;
+}
 
 const categoryLabels: Record<string, { title: string; description: string }> = {
   'living-room': {
@@ -65,6 +73,14 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [sort, setSort] = useState<SortOption>('newest');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<AdvancedFilters>({
+    minPrice: 0,
+    maxPrice: 0,
+    has3D: false,
+    hasDiscount: false,
+    searchQuery: '',
+  });
 
   useEffect(() => {
     setLoading(true);
@@ -108,18 +124,58 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   const categoryMeta = selectedCategory ? categoryLabels[selectedCategory] : undefined;
 
   const sortedProducts = useMemo(() => {
-    const sorted = [...products];
+    let filtered = [...products];
+    
+    // تطبيق الفلاتر المتقدمة
+    if (filters.searchQuery) {
+      const query = filters.searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name?.toLowerCase().includes(query) || 
+        p.description?.toLowerCase().includes(query)
+      );
+    }
+    
+    if (filters.minPrice > 0) {
+      filtered = filtered.filter(p => p.price >= filters.minPrice);
+    }
+    
+    if (filters.maxPrice > 0) {
+      filtered = filtered.filter(p => p.price <= filters.maxPrice);
+    }
+    
+    if (filters.has3D) {
+      filtered = filtered.filter(p => p.threeD);
+    }
+    
+    if (filters.hasDiscount) {
+      filtered = filtered.filter(p => p.discount > 0 || p.originalPrice);
+    }
+    
+    // الترتيب
     switch (sort) {
       case 'price-asc':
-        return sorted.sort((a, b) => a.price - b.price);
+        return filtered.sort((a, b) => a.price - b.price);
       case 'price-desc':
-        return sorted.sort((a, b) => b.price - a.price);
+        return filtered.sort((a, b) => b.price - a.price);
+      case 'rating':
+        return filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       case 'newest':
       default:
-        // Assuming products are fetched by newest from the API
-        return sorted;
+        return filtered;
     }
-  }, [products, sort]);
+  }, [products, sort, filters]);
+
+  const clearFilters = () => {
+    setFilters({
+      minPrice: 0,
+      maxPrice: 0,
+      has3D: false,
+      hasDiscount: false,
+      searchQuery: '',
+    });
+  };
+
+  const hasActiveFilters = filters.minPrice > 0 || filters.maxPrice > 0 || filters.has3D || filters.hasDiscount || filters.searchQuery;
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [{ label: 'الرئيسية', href: '/' }, { label: 'المنتجات', href: '/products' }];
@@ -146,14 +202,14 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
   }, [sortedProducts, loading, sort, selectedCategory]);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen">
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <header className="mb-12 pb-8 border-b border-gradient-to-r from-transparent via-primary/20 to-transparent">
+        <header className="mb-12 pb-8 border-b border-white/10">
           <Breadcrumbs items={breadcrumbItems} />
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent mb-4">
-                {categoryMeta ? categoryMeta.title : 'قائمة المنتجات الكاملة'}
+              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary via-amber-400 to-orange-500 bg-clip-text text-transparent mb-4">
+                {categoryMeta ? categoryMeta.title : 'قائمة المنتجات الكاملة'} ✨
               </h1>
               <p className="text-foreground/60 max-w-2xl text-lg leading-relaxed">
                 {categoryMeta
@@ -163,7 +219,7 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
             </div>
             <button
               onClick={handleRefresh}
-              className="px-5 py-2.5 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-primary/90 hover:to-blue-700 transition-all duration-300 whitespace-nowrap disabled:opacity-60 shadow-md hover:shadow-lg hover:shadow-primary/25 flex items-center gap-2"
+              className="px-5 py-2.5 glass-button text-white rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap disabled:opacity-60 flex items-center gap-2 hover:scale-105"
               disabled={refreshing}
             >
               <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +229,7 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
             </button>
           </div>
           <div className="flex items-center gap-2 text-sm text-foreground/50">
-            <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+            <span className="inline-flex items-center gap-1.5 glass-subtle px-4 py-2 rounded-xl font-medium text-primary">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
@@ -185,24 +241,128 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <ProductsFilterTabs options={filterOptions} />
           <div className="flex items-center gap-4">
-            <label htmlFor="sort-by" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {/* زر الفلاتر المتقدمة */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+                showFilters || hasActiveFilters
+                  ? 'glass-button text-white border-transparent'
+                  : 'glass-subtle border-white/20 dark:border-white/10 hover:border-primary/50'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              فلاتر متقدمة
+              {hasActiveFilters && (
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+            
+            <label htmlFor="sort-by" className="text-sm font-medium text-foreground/70">
               فرز حسب:
             </label>
             <select
               id="sort-by"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortOption)}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary text-sm"
+              className="glass-subtle border border-white/20 dark:border-white/10 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm"
             >
               <option value="newest">الأحدث</option>
               <option value="price-asc">السعر: من الأقل إلى الأعلى</option>
               <option value="price-desc">السعر: من الأعلى إلى الأقل</option>
+              <option value="rating">التقييم الأعلى</option>
             </select>
           </div>
         </div>
 
+        {/* لوحة الفلاتر المتقدمة */}
+        {showFilters && (
+          <div className="glass-card rounded-2xl border border-white/20 dark:border-white/10 p-6 mb-8 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-lg text-foreground">🔍 فلاتر البحث المتقدم</h3>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-red-500 hover:text-red-400 text-sm flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  مسح الكل
+                </button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* البحث بالاسم */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-foreground/70 mb-2">
+                  بحث
+                </label>
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
+                  <input
+                    type="text"
+                    value={filters.searchQuery}
+                    onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                    placeholder="ابحث عن منتج..."
+                    className="w-full pr-10 pl-4 py-2.5 glass-input rounded-xl focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+              
+              {/* السعر الأدنى */}
+              <div>
+                <label className="block text-sm font-medium text-foreground/70 mb-2">
+                  السعر الأدنى
+                </label>
+                <input
+                  type="number"
+                  value={filters.minPrice || ''}
+                  onChange={(e) => setFilters({ ...filters, minPrice: Number(e.target.value) })}
+                  placeholder="0"
+                  className="w-full px-4 py-2.5 glass-input rounded-xl focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              
+              {/* السعر الأقصى */}
+              <div>
+                <label className="block text-sm font-medium text-foreground/70 mb-2">
+                  السعر الأقصى
+                </label>
+                <input
+                  type="number"
+                  value={filters.maxPrice || ''}
+                  onChange={(e) => setFilters({ ...filters, maxPrice: Number(e.target.value) })}
+                  placeholder="∞"
+                  className="w-full px-4 py-2.5 glass-input rounded-xl focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              
+              {/* فلاتر إضافية */}
+              <div className="flex flex-col justify-end gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.has3D}
+                    onChange={(e) => setFilters({ ...filters, has3D: e.target.checked })}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm text-foreground/70">عرض 3D فقط</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.hasDiscount}
+                    onChange={(e) => setFilters({ ...filters, hasDiscount: e.target.checked })}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm text-foreground/70">عروض وخصومات</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
         {error && (
-          <div className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-100">
+          <div className="mb-6 rounded-2xl border border-red-500/30 glass-subtle bg-red-500/10 p-6 text-red-500 dark:text-red-400">
             <p>{error}</p>
           </div>
         )}
@@ -212,31 +372,31 @@ export default function ProductsPageClient({ selectedCategory }: ProductsPageCli
             {skeletons.map((_, idx) => (
               <div
                 key={idx}
-                className="animate-pulse rounded-2xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 overflow-hidden shadow-lg"
+                className="animate-pulse rounded-2xl glass-card border border-white/20 dark:border-white/10 overflow-hidden shadow-xl"
               >
-                <div className="h-72 bg-gray-100 dark:bg-gray-800" />
-                <div className="p-5 space-y-4 bg-white dark:bg-gray-900">
-                  <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                <div className="h-72 glass-subtle" />
+                <div className="p-5 space-y-4">
+                  <div className="h-6 w-24 glass-subtle rounded-xl" />
                   <div className="space-y-2">
-                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-lg" />
-                    <div className="h-5 bg-gray-100 dark:bg-gray-700/60 rounded-lg w-3/4" />
+                    <div className="h-5 glass-subtle rounded-lg" />
+                    <div className="h-5 glass-subtle rounded-lg w-3/4" />
                   </div>
                   <div className="flex justify-between items-center pt-2">
-                    <div className="h-7 w-28 bg-gray-200 dark:bg-gray-700 rounded-lg" />
-                    <div className="h-6 w-16 bg-gray-100 dark:bg-gray-700/60 rounded-lg" />
+                    <div className="h-7 w-28 glass-subtle rounded-lg" />
+                    <div className="h-6 w-16 glass-subtle rounded-lg" />
                   </div>
                   <div className="space-y-2.5 pt-2">
                     <div className="h-12 bg-primary/20 rounded-xl" />
-                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+                    <div className="h-10 glass-subtle rounded-xl" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-3xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5 p-16 text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="rounded-3xl border-2 border-dashed border-primary/30 glass-card p-16 text-center">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl glass-subtle flex items-center justify-center">
+              <svg className="w-12 h-12 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>

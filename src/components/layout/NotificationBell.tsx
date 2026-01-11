@@ -51,7 +51,7 @@ export default function NotificationBell() {
       {/* زر الجرس */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-white/10 transition-colors"
+        className="relative p-2.5 rounded-xl hover:bg-white/10 dark:hover:bg-white/5 transition-all hover:scale-105"
         aria-label="الإشعارات"
       >
         <svg
@@ -60,7 +60,7 @@ export default function NotificationBell() {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-6 h-6 text-white/80"
+          className="w-5 h-5 text-foreground/70"
         >
           <path
             strokeLinecap="round"
@@ -71,7 +71,7 @@ export default function NotificationBell() {
         
         {/* شارة عدد الإشعارات */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/30">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -79,10 +79,10 @@ export default function NotificationBell() {
 
       {/* قائمة الإشعارات */}
       {isOpen && (
-        <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-80 bg-slate-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+        <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-80 glass-card border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-white/10 bg-slate-900/50">
-            <h3 className="font-semibold text-white text-sm">الإشعارات</h3>
+          <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <h3 className="font-bold text-foreground text-sm">🔔 الإشعارات</h3>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllAsRead()}
@@ -96,8 +96,8 @@ export default function NotificationBell() {
           {/* قائمة الإشعارات */}
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-white/50">
-                <span className="text-3xl mb-2 block">🔔</span>
+              <div className="p-8 text-center text-foreground/50">
+                <span className="text-4xl mb-3 block">🔔</span>
                 <p className="text-sm">لا توجد إشعارات</p>
               </div>
             ) : (
@@ -109,25 +109,25 @@ export default function NotificationBell() {
                     if (!notif.read) markAsRead(notif._id);
                     setIsOpen(false);
                   }}
-                  className={`block p-3 border-b border-white/5 hover:bg-white/5 transition-colors ${
+                  className={`block p-3 border-b border-white/5 hover:bg-white/10 dark:hover:bg-white/5 transition-all ${
                     !notif.read ? 'bg-primary/10' : ''
                   }`}
                 >
                   <div className="flex gap-3">
-                    <span className="text-xl">{getNotificationIcon(notif.type)}</span>
+                    <span className="text-xl w-10 h-10 glass-subtle rounded-xl flex items-center justify-center">{getNotificationIcon(notif.type)}</span>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${!notif.read ? 'text-white' : 'text-white/70'}`}>
+                      <p className={`text-sm font-medium ${!notif.read ? 'text-foreground' : 'text-foreground/70'}`}>
                         {notif.title}
                       </p>
-                      <p className="text-xs text-white/50 mt-0.5 line-clamp-2">
+                      <p className="text-xs text-foreground/50 mt-0.5 line-clamp-2">
                         {notif.message}
                       </p>
-                      <p className="text-[10px] text-white/30 mt-1">
+                      <p className="text-[10px] text-foreground/30 mt-1">
                         {formatTime(notif.createdAt)}
                       </p>
                     </div>
                     {!notif.read && (
-                      <span className="w-2 h-2 bg-primary rounded-full mt-1.5"></span>
+                      <span className="w-2 h-2 bg-primary rounded-full mt-1.5 animate-pulse"></span>
                     )}
                   </div>
                 </Link>
@@ -136,11 +136,11 @@ export default function NotificationBell() {
           </div>
 
           {/* Footer */}
-          <div className="p-2 border-t border-white/10 bg-slate-900/50">
+          <div className="p-3 border-t border-white/10">
             <Link
               href="/messages"
               onClick={() => setIsOpen(false)}
-              className="block w-full py-2 text-center text-sm text-primary hover:bg-white/5 rounded-lg transition-colors"
+              className="block w-full py-2.5 text-center text-sm text-primary hover:bg-primary/10 rounded-xl transition-all font-medium"
             >
               عرض كل الرسائل
             </Link>

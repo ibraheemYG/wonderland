@@ -34,23 +34,22 @@ const Header = () => {
   }, [isUserMenuOpen]);
 
   return (
-    <header className="bg-background/95 backdrop-blur-md sticky top-0 z-40 border-b border-secondary">
+    <header className="glass sticky top-0 z-40 border-b border-white/10 dark:border-white/5">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/" className="text-3xl font-bold text-primary hover:text-primary/80 transition-colors">
-              Wonderland
+            <a href="/" className="text-3xl font-bold bg-gradient-to-r from-primary via-amber-400 to-primary bg-clip-text text-transparent hover:opacity-80 transition-opacity">
+              ✨ Wonderland
             </a>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex md:space-x-8">
-            <a href="/" className="text-foreground hover:text-primary transition-colors font-medium">Home</a>
-            <a href="/products" className="text-foreground hover:text-primary transition-colors font-medium">Shop</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Collections</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">About</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">Contact</a>
+          <nav className="hidden md:flex md:space-x-1 md:gap-1">
+            <a href="/" className="px-4 py-2 rounded-xl text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 transition-all font-medium">الرئيسية</a>
+            <a href="/products" className="px-4 py-2 rounded-xl text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 transition-all font-medium">المتجر</a>
+            <a href="/survey" className="px-4 py-2 rounded-xl text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 transition-all font-medium">الاستبيان</a>
+            <a href="/try-3d" className="px-4 py-2 rounded-xl text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 transition-all font-medium">معاينة 3D</a>
           </nav>
 
           {/* Actions */}
@@ -58,7 +57,7 @@ const Header = () => {
             {/* Theme Toggle */}
             <button 
               onClick={toggleTheme}
-              className="p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary"
+              className="p-2.5 text-foreground/70 hover:text-primary transition-all rounded-xl hover:bg-white/10 dark:hover:bg-white/5 hover:scale-105"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? (
@@ -75,13 +74,13 @@ const Header = () => {
             {/* Cart - الأهم يكون ظاهر دائماً */}
             <button 
               onClick={toggleCart} 
-              className="relative p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary"
+              className="relative p-2.5 text-foreground/70 hover:text-primary transition-all rounded-xl hover:bg-white/10 dark:hover:bg-white/5 hover:scale-105"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z" />
               </svg>
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-r from-primary to-amber-400 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
                   {itemCount}
                 </span>
               )}
@@ -95,7 +94,7 @@ const Header = () => {
                   <NotificationBell />
                   <Link 
                     href={user.role === 'admin' ? '/admin/messages' : '/messages'}
-                    className="p-2 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary"
+                    className="p-2.5 text-foreground/70 hover:text-primary transition-all rounded-xl hover:bg-white/10 dark:hover:bg-white/5 hover:scale-105"
                     title="الرسائل"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,9 +107,9 @@ const Header = () => {
                 <div className="relative" ref={userMenuRef}>
                   <button 
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-1 p-1.5 text-foreground hover:text-primary transition-colors rounded-full hover:bg-secondary"
+                    className="flex items-center gap-1 p-1.5 text-foreground hover:text-primary transition-all rounded-xl hover:bg-white/10 dark:hover:bg-white/5"
                   >
-                    <div className="w-7 h-7 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary via-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-primary/30">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   </button>
@@ -122,16 +121,16 @@ const Header = () => {
                       className="fixed inset-0 z-40" 
                       onClick={() => setIsUserMenuOpen(false)}
                     />
-                    <div className="absolute left-0 mt-3 w-72 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute left-0 mt-3 w-72 glass-card border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       {/* User Info Header */}
-                      <div className="p-5 bg-gradient-to-r from-primary/20 to-blue-600/20 border-b border-white/10">
+                      <div className="p-5 bg-gradient-to-r from-primary/20 via-amber-500/10 to-orange-500/20 border-b border-white/10">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          <div className="w-14 h-14 bg-gradient-to-br from-primary via-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/30">
                             {user.name?.charAt(0).toUpperCase() || 'U'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-white truncate">{user.name}</p>
-                            <p className="text-xs text-white/60 truncate">{user.email || 'مستخدم'}</p>
+                            <p className="font-semibold text-foreground truncate">{user.name}</p>
+                            <p className="text-xs text-foreground/60 truncate">{user.email || 'مستخدم'}</p>
                           </div>
                         </div>
                       </div>
@@ -141,62 +140,62 @@ const Header = () => {
                         {user.role === 'admin' && (
                           <>
                             <div className="px-4 py-2">
-                              <p className="text-xs font-medium text-white/40 uppercase tracking-wider">لوحة الإدارة</p>
+                              <p className="text-xs font-medium text-foreground/40 uppercase tracking-wider">لوحة الإدارة</p>
                             </div>
                             <Link 
                               href="/admin/dashboard" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">📊</span>
+                              <span className="w-9 h-9 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/30 group-hover:scale-110 transition-all">📊</span>
                               <span>لوحة التحكم</span>
                             </Link>
                             <Link 
                               href="/admin/users" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">👥</span>
+                              <span className="w-9 h-9 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:bg-blue-500/30 group-hover:scale-110 transition-all">👥</span>
                               <span>المستخدمين</span>
                             </Link>
                             <Link 
                               href="/admin/products" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">📦</span>
+                              <span className="w-9 h-9 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/30 group-hover:scale-110 transition-all">📦</span>
                               <span>المنتجات</span>
                             </Link>
                             <Link 
                               href="/admin/surveys" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">📋</span>
+                              <span className="w-9 h-9 bg-green-500/20 rounded-xl flex items-center justify-center group-hover:bg-green-500/30 group-hover:scale-110 transition-all">📋</span>
                               <span>الاستبيانات</span>
                             </Link>
                             <Link 
                               href="/admin/admins" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">🔐</span>
+                              <span className="w-9 h-9 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:bg-orange-500/30 group-hover:scale-110 transition-all">🔐</span>
                               <span>إدارة الأدمن</span>
                             </Link>
                             <Link 
                               href="/admin/messages" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center group-hover:bg-pink-500/30 transition-colors">💬</span>
+                              <span className="w-9 h-9 bg-pink-500/20 rounded-xl flex items-center justify-center group-hover:bg-pink-500/30 group-hover:scale-110 transition-all">💬</span>
                               <span>الرسائل</span>
                             </Link>
                             <Link 
                               href="/admin/orders" 
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                             >
-                              <span className="w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center group-hover:bg-teal-500/30 transition-colors">🛒</span>
+                              <span className="w-9 h-9 bg-teal-500/20 rounded-xl flex items-center justify-center group-hover:bg-teal-500/30 group-hover:scale-110 transition-all">🛒</span>
                               <span>الطلبات</span>
                             </Link>
                             <div className="my-2 mx-4 border-t border-white/10"></div>
@@ -206,27 +205,27 @@ const Header = () => {
                         <Link 
                           href="/orders" 
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                         >
-                          <span className="w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center group-hover:bg-teal-500/30 transition-colors">📦</span>
+                          <span className="w-9 h-9 bg-teal-500/20 rounded-xl flex items-center justify-center group-hover:bg-teal-500/30 group-hover:scale-110 transition-all">📦</span>
                           <span>طلباتي</span>
                         </Link>
 
                         <Link 
                           href="/survey" 
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                         >
-                          <span className="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/30 transition-colors">📝</span>
+                          <span className="w-9 h-9 bg-cyan-500/20 rounded-xl flex items-center justify-center group-hover:bg-cyan-500/30 group-hover:scale-110 transition-all">📝</span>
                           <span>الاستبيان</span>
                         </Link>
                         
                         <Link 
                           href="/messages" 
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all group"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
                         >
-                          <span className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center group-hover:bg-pink-500/30 transition-colors">💬</span>
+                          <span className="w-9 h-9 bg-pink-500/20 rounded-xl flex items-center justify-center group-hover:bg-pink-500/30 group-hover:scale-110 transition-all">💬</span>
                           <span>رسائلي</span>
                         </Link>
                         
@@ -239,7 +238,7 @@ const Header = () => {
                           }}
                           className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all group"
                         >
-                          <span className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500/30 transition-colors">🚪</span>
+                          <span className="w-9 h-9 bg-red-500/20 rounded-xl flex items-center justify-center group-hover:bg-red-500/30 group-hover:scale-110 transition-all">🚪</span>
                           <span>تسجيل الخروج</span>
                         </button>
                       </nav>
@@ -249,7 +248,7 @@ const Header = () => {
               </div>
               </>
             ) : (
-              <Link href="/login" className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-full hover:bg-primary/90 transition-colors">
+              <Link href="/login" className="flex items-center gap-2 px-4 py-2 glass-button text-white text-sm font-medium rounded-xl hover:scale-105 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
@@ -260,7 +259,7 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
+              className="md:hidden p-2.5 text-foreground/70 hover:text-primary transition-all rounded-xl hover:bg-white/10 dark:hover:bg-white/5"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -271,12 +270,12 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-secondary">
+          <div className="md:hidden py-4 border-t border-white/10">
             {/* Mobile User Info Card */}
             {user && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-primary/10 to-blue-600/10 rounded-xl border border-primary/20">
+              <div className="mb-4 p-4 glass-card rounded-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  <div className="w-14 h-14 bg-gradient-to-br from-primary via-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/30">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -294,21 +293,21 @@ const Header = () => {
 
             {/* Navigation Links */}
             <nav className="flex flex-col space-y-1 mb-4">
-              <a href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors font-medium">
-                <span className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">🏠</span>
+              <a href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 rounded-xl transition-all font-medium">
+                <span className="w-9 h-9 glass-subtle rounded-xl flex items-center justify-center">🏠</span>
                 الرئيسية
               </a>
-              <a href="/products" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors font-medium">
-                <span className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">🛍️</span>
+              <a href="/products" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 rounded-xl transition-all font-medium">
+                <span className="w-9 h-9 glass-subtle rounded-xl flex items-center justify-center">🛍️</span>
                 المتجر
               </a>
-              <a href="/survey" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors font-medium">
-                <span className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">📝</span>
+              <a href="/survey" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 rounded-xl transition-all font-medium">
+                <span className="w-9 h-9 glass-subtle rounded-xl flex items-center justify-center">📝</span>
                 الاستبيان
               </a>
               {user && (
-                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors font-medium">
-                  <span className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">💬</span>
+                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 text-foreground/80 hover:text-primary hover:bg-white/10 dark:hover:bg-white/5 rounded-xl transition-all font-medium">
+                  <span className="w-9 h-9 glass-subtle rounded-xl flex items-center justify-center">💬</span>
                   رسائلي
                 </Link>
               )}
@@ -316,31 +315,31 @@ const Header = () => {
 
             {/* Admin Links (if admin) */}
             {user?.role === 'admin' && (
-              <div className="mb-4 border-t border-secondary pt-4">
+              <div className="mb-4 border-t border-white/10 pt-4">
                 <p className="px-3 text-xs font-medium text-foreground/40 uppercase tracking-wider mb-2">لوحة الإدارة</p>
                 <nav className="flex flex-col space-y-1">
-                  <Link href="/admin/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground hover:text-primary hover:bg-purple-500/10 rounded-lg transition-colors text-sm">
-                    <span className="w-7 h-7 bg-purple-500/20 rounded-lg flex items-center justify-center text-sm">📊</span>
+                  <Link href="/admin/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground/80 hover:text-primary hover:bg-purple-500/10 rounded-xl transition-all text-sm">
+                    <span className="w-8 h-8 bg-purple-500/20 rounded-xl flex items-center justify-center text-sm">📊</span>
                     لوحة التحكم
                   </Link>
-                  <Link href="/admin/users" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground hover:text-primary hover:bg-blue-500/10 rounded-lg transition-colors text-sm">
-                    <span className="w-7 h-7 bg-blue-500/20 rounded-lg flex items-center justify-center text-sm">👥</span>
+                  <Link href="/admin/users" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground/80 hover:text-primary hover:bg-blue-500/10 rounded-xl transition-all text-sm">
+                    <span className="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center text-sm">👥</span>
                     المستخدمين
                   </Link>
-                  <Link href="/admin/products" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground hover:text-primary hover:bg-amber-500/10 rounded-lg transition-colors text-sm">
-                    <span className="w-7 h-7 bg-amber-500/20 rounded-lg flex items-center justify-center text-sm">📦</span>
+                  <Link href="/admin/products" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground/80 hover:text-primary hover:bg-amber-500/10 rounded-xl transition-all text-sm">
+                    <span className="w-8 h-8 bg-amber-500/20 rounded-xl flex items-center justify-center text-sm">📦</span>
                     المنتجات
                   </Link>
-                  <Link href="/admin/surveys" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground hover:text-primary hover:bg-green-500/10 rounded-lg transition-colors text-sm">
-                    <span className="w-7 h-7 bg-green-500/20 rounded-lg flex items-center justify-center text-sm">📋</span>
+                  <Link href="/admin/surveys" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground/80 hover:text-primary hover:bg-green-500/10 rounded-xl transition-all text-sm">
+                    <span className="w-8 h-8 bg-green-500/20 rounded-xl flex items-center justify-center text-sm">📋</span>
                     الاستبيانات
                   </Link>
-                  <Link href="/admin/admins" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground hover:text-primary hover:bg-orange-500/10 rounded-lg transition-colors text-sm">
-                    <span className="w-7 h-7 bg-orange-500/20 rounded-lg flex items-center justify-center text-sm">🔐</span>
+                  <Link href="/admin/admins" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground/80 hover:text-primary hover:bg-orange-500/10 rounded-xl transition-all text-sm">
+                    <span className="w-8 h-8 bg-orange-500/20 rounded-xl flex items-center justify-center text-sm">🔐</span>
                     إدارة الأدمن
                   </Link>
-                  <Link href="/admin/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground hover:text-primary hover:bg-pink-500/10 rounded-lg transition-colors text-sm">
-                    <span className="w-7 h-7 bg-pink-500/20 rounded-lg flex items-center justify-center text-sm">💬</span>
+                  <Link href="/admin/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-foreground/80 hover:text-primary hover:bg-pink-500/10 rounded-xl transition-all text-sm">
+                    <span className="w-8 h-8 bg-pink-500/20 rounded-xl flex items-center justify-center text-sm">💬</span>
                     الرسائل
                   </Link>
                 </nav>
@@ -348,14 +347,14 @@ const Header = () => {
             )}
 
             {/* Auth Actions */}
-            <div className="border-t border-secondary pt-4">
+            <div className="border-t border-white/10 pt-4">
               {user ? (
                 <button
                   onClick={() => {
                     logout();
                     setIsMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm bg-red-600 hover:bg-red-700 text-white rounded-xl transition font-medium"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all font-medium shadow-lg shadow-red-500/25"
                 >
                   <span>🚪</span>
                   تسجيل الخروج
@@ -364,7 +363,7 @@ const Header = () => {
                 <Link 
                   href="/login" 
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full px-4 py-3 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition text-center font-medium"
+                  className="block w-full px-4 py-3 text-sm glass-button text-white rounded-xl transition-all text-center font-medium"
                 >
                   تسجيل الدخول
                 </Link>
