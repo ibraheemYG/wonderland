@@ -121,7 +121,7 @@ const Header = () => {
                       className="fixed inset-0 z-40" 
                       onClick={() => setIsUserMenuOpen(false)}
                     />
-                    <div className="absolute left-0 mt-3 w-72 glass-card border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute left-0 mt-3 w-72 glass-card border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] overflow-y-auto">
                       {/* User Info Header */}
                       <div className="p-5 bg-gradient-to-r from-primary/20 via-amber-500/10 to-orange-500/20 border-b border-white/10">
                         <div className="flex items-center gap-3">
