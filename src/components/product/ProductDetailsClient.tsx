@@ -69,6 +69,7 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
   const [newReview, setNewReview] = useState({ rating: 5, comment: '', images: [] as string[] });
   const [submittingReview, setSubmittingReview] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const router = useRouter();
   const { addToCart } = useCart();
   const { user } = useAuth();
@@ -120,6 +121,27 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
 
     fetchReviews();
   }, [productId]);
+
+  // جلب المنتجات ذات الصلة
+  useEffect(() => {
+    if (!product?.category) return;
+    
+    const fetchRelated = async () => {
+      try {
+        const res = await fetch(`/api/products?category=${product.category}&limit=4`);
+        const data = await res.json();
+        if (data.success) {
+          // استبعاد المنتج الحالي
+          const filtered = data.data.filter((p: Product) => p.id !== productId);
+          setRelatedProducts(filtered.slice(0, 4));
+        }
+      } catch (err) {
+        console.error('Error fetching related products:', err);
+      }
+    };
+
+    fetchRelated();
+  }, [product?.category, productId]);
 
   // رفع صور المراجعة
   const handleUploadReviewImages = async (files: FileList) => {
@@ -738,6 +760,51 @@ export default function ProductDetailsClient({ productId }: ProductDetailsClient
           )}
         </div>
       </section>
+
+      {/* قسم المنتجات ذات الصلة */}
+      {relatedProducts.length > 0 && (
+        <section className="mt-16 border-t border-secondary pt-12">
+          <h2 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3">
+            <span className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">🔗</span>
+            منتجات ذات صلة
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {relatedProducts.map((relatedProduct) => (
+              <Link 
+                key={relatedProduct.id} 
+                href={`/products/${relatedProduct.id}`}
+                className="group glass-card rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
+              >
+                <div className="aspect-square relative overflow-hidden">
+                  <img 
+                    src={relatedProduct.images?.[0] || relatedProduct.imageUrl || '/placeholder.png'} 
+                    alt={relatedProduct.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  {relatedProduct.originalPrice && (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      خصم {Math.round((1 - relatedProduct.price / relatedProduct.originalPrice) * 100)}%
+                    </span>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                    {relatedProduct.name}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-primary font-bold">{formatIQDFromUSD(relatedProduct.price)}</span>
+                    {relatedProduct.originalPrice && (
+                      <span className="text-foreground/50 text-xs line-through">
+                        {formatIQDFromUSD(relatedProduct.originalPrice)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
