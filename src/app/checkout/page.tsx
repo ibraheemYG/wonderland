@@ -109,11 +109,37 @@ function CheckoutContent() {
   const total = subtotalAfterDiscount + shippingCost; // الإجمالي بالدينار
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    
+    // فقط أرقام لحقل الهاتف
+    if (name === 'customerPhone') {
+      const numbersOnly = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: numbersOnly,
+      }));
+    } 
+    // فقط أحرف عربية ومسافات للمنطقة والشارع
+    else if (name === 'area' || name === 'street' || name === 'building') {
+      const arabicOnly = value.replace(/[^\u0600-\u06FF\s0-9]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: arabicOnly,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
     setError('');
+  };
+
+  // التحقق من رقم الهاتف العراقي
+  const validateIraqiPhone = (phone: string): boolean => {
+    // يجب أن يبدأ بـ 07 ويكون 11 رقم
+    const iraqiPhoneRegex = /^07[3-9][0-9]{8}$/;
+    return iraqiPhoneRegex.test(phone);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,6 +157,10 @@ function CheckoutContent() {
     }
     if (!formData.customerPhone.trim()) {
       setError('الرجاء إدخال رقم الهاتف');
+      return;
+    }
+    if (!validateIraqiPhone(formData.customerPhone)) {
+      setError('رقم الهاتف غير صحيح - يجب أن يبدأ بـ 07 ويكون 11 رقم');
       return;
     }
     if (!formData.city) {
