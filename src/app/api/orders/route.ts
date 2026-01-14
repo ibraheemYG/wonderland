@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Order, { generateOrderNumber } from '@/models/Order';
 import Notification from '@/models/Notification';
+import { Coupon } from '@/models/Coupon';
 
 // GET - جلب الطلبات
 export async function GET(request: NextRequest) {
@@ -70,6 +71,8 @@ export async function POST(request: NextRequest) {
       subtotal,
       discount = 0,
       discountReason,
+      couponCode,
+      couponDiscount = 0,
       shippingCost = 0,
       total,
       paymentMethod = 'cash_on_delivery',
@@ -96,11 +99,21 @@ export async function POST(request: NextRequest) {
       subtotal,
       discount,
       discountReason,
+      couponCode,
+      couponDiscount,
       shippingCost,
       total,
       paymentMethod,
       notes,
     });
+
+    // زيادة عدد استخدام الكوبون إذا تم استخدامه
+    if (couponCode) {
+      await Coupon.findOneAndUpdate(
+        { code: couponCode.toUpperCase() },
+        { $inc: { usedCount: 1 } }
+      );
+    }
 
     // إرسال إشعار للأدمن
     // نحتاج جلب كل الأدمنز وإرسال إشعار لكل واحد

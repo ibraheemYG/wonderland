@@ -42,6 +42,18 @@ function CheckoutContent() {
   const [hasSurveyDiscount, setHasSurveyDiscount] = useState(false);
   const [checkingDiscount, setCheckingDiscount] = useState(true);
 
+  // حالة الكوبون
+  const [couponCode, setCouponCode] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    minOrderAmount?: number;
+    maxDiscount?: number;
+  } | null>(null);
+
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -100,13 +112,80 @@ function CheckoutContent() {
   }, [cartItems, router, success]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  // خصم 10% إذا أكمل الاستبيان
-  const discountAmount = hasSurveyDiscount ? Math.round(subtotal * 0.10) : 0;
-  const subtotalAfterDiscount = subtotal - discountAmount;
+  // خصم 10% إذا أكمل الاستبيان (بحد أقصى 50,000 دينار)
+  const MAX_SURVEY_DISCOUNT = 50000;
+  const surveyDiscount = hasSurveyDiscount ? Math.min(Math.round(subtotal * 0.10), MAX_SURVEY_DISCOUNT) : 0;
+  
+  // حساب خصم الكوبون
+  let couponDiscount = 0;
+  if (appliedCoupon) {
+    // التحقق من الحد الأدنى للطلب
+    if (!appliedCoupon.minOrderAmount || subtotal >= appliedCoupon.minOrderAmount) {
+      if (appliedCoupon.discountType === 'percentage') {
+        couponDiscount = Math.round(subtotal * (appliedCoupon.discountValue / 100));
+        // تطبيق الحد الأقصى للخصم
+        if (appliedCoupon.maxDiscount && couponDiscount > appliedCoupon.maxDiscount) {
+          couponDiscount = appliedCoupon.maxDiscount;
+        }
+      } else {
+        couponDiscount = appliedCoupon.discountValue;
+      }
+    }
+  }
+  
+  const totalDiscount = surveyDiscount + couponDiscount;
+  const subtotalAfterDiscount = subtotal - totalDiscount;
   // بغداد: توصيل مجاني، باقي المدن: 75,000 دينار
   const SHIPPING_COST = 75000; // تكلفة التوصيل بالدينار
   const shippingCost = formData.city === 'بغداد' ? 0 : SHIPPING_COST;
   const total = subtotalAfterDiscount + shippingCost; // الإجمالي بالدينار
+
+  // دالة تطبيق الكوبون
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('الرجاء إدخال كود الخصم');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError('');
+
+    try {
+      const res = await fetch(`/api/coupons?code=${encodeURIComponent(couponCode.trim().toUpperCase())}`);
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        const coupon = data.data;
+        
+        // التحقق من الحد الأدنى للطلب
+        if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
+          setCouponError(`الحد الأدنى للطلب ${coupon.minOrderAmount.toLocaleString('ar-IQ')} د.ع`);
+          return;
+        }
+
+        setAppliedCoupon({
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountValue: coupon.discountValue,
+          minOrderAmount: coupon.minOrderAmount,
+          maxDiscount: coupon.maxDiscount,
+        });
+        setCouponCode('');
+      } else {
+        setCouponError(data.message || 'كود الخصم غير صالح');
+      }
+    } catch (err) {
+      setCouponError('حدث خطأ في التحقق من الكود');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  // دالة إزالة الكوبون
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -201,8 +280,14 @@ function CheckoutContent() {
           image: item.image,
         })),
         subtotal: subtotal,
-        discount: discountAmount,
-        discountReason: hasSurveyDiscount ? 'خصم إكمال الاستبيان (10%)' : undefined,
+        discount: totalDiscount,
+        surveyDiscount: surveyDiscount,
+        couponDiscount: couponDiscount,
+        couponCode: appliedCoupon?.code,
+        discountReason: [
+          hasSurveyDiscount ? 'خصم إكمال الاستبيان (10%)' : '',
+          appliedCoupon ? `كوبون ${appliedCoupon.code}` : '',
+        ].filter(Boolean).join(' + ') || undefined,
         shippingCost: shippingCost,
         total: total,
         paymentMethod: formData.paymentMethod,
@@ -389,6 +474,63 @@ function CheckoutContent() {
                 </div>
               </div>
 
+              {/* كود الخصم */}
+              <div className="glass-card rounded-2xl p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <span>🏷️</span> كود الخصم
+                </h2>
+                
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-4 glass-subtle rounded-xl border border-green-500/30 bg-green-500/10">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">✅</span>
+                      <div>
+                        <p className="text-green-400 font-medium">تم تطبيق الكوبون: {appliedCoupon.code}</p>
+                        <p className="text-foreground/60 text-sm">
+                          خصم {appliedCoupon.discountType === 'percentage' 
+                            ? `${appliedCoupon.discountValue}%` 
+                            : `${appliedCoupon.discountValue.toLocaleString('ar-IQ')} د.ع`}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-red-400 hover:text-red-300 transition p-2"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError('');
+                        }}
+                        placeholder="أدخل كود الخصم"
+                        className="flex-1 px-4 py-3 glass-input rounded-xl text-foreground placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        dir="ltr"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={couponLoading || !couponCode.trim()}
+                        className="px-6 py-3 bg-gradient-to-r from-primary to-amber-500 text-white rounded-xl hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 transition font-medium whitespace-nowrap"
+                      >
+                        {couponLoading ? '...' : 'تطبيق'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-red-400 text-sm">{couponError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* طريقة الدفع */}
               <div className="glass-card rounded-2xl p-6">
                 <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -464,13 +606,21 @@ function CheckoutContent() {
                 {hasSurveyDiscount && (
                   <div className="flex justify-between text-green-400">
                     <span>🎁 خصم الاستبيان (10%)</span>
-                    <span>- {discountAmount.toLocaleString('ar-IQ')} د.ع</span>
+                    <span>- {surveyDiscount.toLocaleString('ar-IQ')} د.ع</span>
                   </div>
                 )}
                 {!hasSurveyDiscount && !checkingDiscount && (
                   <p className="text-amber-400/70 text-xs">
                     💡 أكمل الاستبيان للحصول على خصم 10%!
                   </p>
+                )}
+                
+                {/* خصم الكوبون */}
+                {appliedCoupon && couponDiscount > 0 && (
+                  <div className="flex justify-between text-green-400">
+                    <span>🏷️ كوبون {appliedCoupon.code}</span>
+                    <span>- {couponDiscount.toLocaleString('ar-IQ')} د.ع</span>
+                  </div>
                 )}
                 
                 <div className="flex justify-between text-foreground/70">
