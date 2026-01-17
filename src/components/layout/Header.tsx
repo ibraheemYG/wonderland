@@ -143,6 +143,14 @@ const Header = () => {
                               <p className="text-xs font-medium text-foreground/40 uppercase tracking-wider">لوحة الإدارة</p>
                             </div>
                             <Link 
+                              href="/admin-app" 
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 transition-all group mx-2 rounded-xl mb-2"
+                            >
+                              <span className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all">📱</span>
+                              <span className="font-medium">تطبيق الأدمن</span>
+                            </Link>
+                            <Link 
                               href="/admin/dashboard" 
                               onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/80 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary transition-all group"
