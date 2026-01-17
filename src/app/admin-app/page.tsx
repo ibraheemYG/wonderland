@@ -65,6 +65,55 @@ export default function AdminApp() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  
+  // حالة تثبيت التطبيق
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  // التحقق من تثبيت التطبيق
+  useEffect(() => {
+    // التحقق هل التطبيق مثبت
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+
+    // الاستماع لحدث beforeinstallprompt
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+
+    // الاستماع لحدث appinstalled
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setShowInstallBanner(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  // دالة تثبيت التطبيق
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setIsAppInstalled(true);
+    }
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
 
   // تسجيل Service Worker وتفعيل الإشعارات
   useEffect(() => {
@@ -275,8 +324,37 @@ export default function AdminApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white pb-20">
+      {/* بانر تثبيت التطبيق */}
+      {showInstallBanner && !isAppInstalled && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-3 shadow-lg">
+          <div className="flex items-center justify-between max-w-md mx-auto">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📲</span>
+              <div>
+                <p className="font-bold text-sm">ثبّت التطبيق!</p>
+                <p className="text-white/80 text-xs">للوصول السريع من الشاشة الرئيسية</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={installApp}
+                className="px-4 py-2 bg-white text-amber-600 rounded-xl font-bold text-sm active:scale-95 transition"
+              >
+                تثبيت
+              </button>
+              <button
+                onClick={() => setShowInstallBanner(false)}
+                className="p-2 text-white/70 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3">
+      <header className={`sticky ${showInstallBanner && !isAppInstalled ? 'top-14' : 'top-0'} z-40 bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3 transition-all`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xl">
@@ -538,6 +616,46 @@ export default function AdminApp() {
             {/* Settings Tab */}
             {activeTab === 'settings' && (
               <div className="space-y-4">
+                {/* تثبيت التطبيق */}
+                {!isAppInstalled && (
+                  <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4">
+                    <h2 className="font-bold mb-3 flex items-center gap-2 text-amber-400">
+                      <span>📲</span> تثبيت التطبيق
+                    </h2>
+                    <p className="text-white/70 text-sm mb-4">
+                      ثبّت التطبيق على شاشتك الرئيسية للوصول السريع وتجربة أفضل
+                    </p>
+                    {deferredPrompt ? (
+                      <button
+                        onClick={installApp}
+                        className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-bold active:scale-95 transition"
+                      >
+                        📥 تثبيت الآن
+                      </button>
+                    ) : (
+                      <div className="text-white/60 text-sm">
+                        <p className="mb-2">للتثبيت يدوياً:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-xs">
+                          <li>اضغط على قائمة المتصفح (⋮ أو ⋯)</li>
+                          <li>اختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isAppInstalled && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">✅</span>
+                      <div>
+                        <p className="font-bold text-green-400">التطبيق مثبت!</p>
+                        <p className="text-white/60 text-xs">أنت تستخدم التطبيق كتطبيق مستقل</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* الإشعارات */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                   <h2 className="font-bold mb-4 flex items-center gap-2">
