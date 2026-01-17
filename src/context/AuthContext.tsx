@@ -30,6 +30,28 @@ interface AuthContextType {
 // قائمة الأدمن الافتراضية
 const DEFAULT_ADMINS = ['ibraheem2016b@gmail.com'];
 
+// دالة للحصول على الـ base URL
+function getApiBaseUrl(): string {
+  if (typeof window === 'undefined') return '';
+  
+  // للتطبيقات الأصلية (Capacitor)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (baseUrl && baseUrl.startsWith('http')) {
+    return baseUrl;
+  }
+  
+  // للويب الافتراضي
+  return typeof window !== 'undefined' ? window.location.origin : '';
+}
+
+function getApiUrl(path: string): string {
+  const baseUrl = getApiBaseUrl();
+  if (baseUrl) {
+    return `${baseUrl}${path}`;
+  }
+  return path;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -74,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -105,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let isUserAdmin = false;
       if (userData.email) {
         try {
-          const adminResponse = await fetch('/api/admin');
+          const adminResponse = await fetch(getApiUrl('/api/admin'));
           if (adminResponse.ok) {
             const adminData = await adminResponse.json();
             const admins = adminData.data || [];

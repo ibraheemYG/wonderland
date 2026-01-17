@@ -6,17 +6,12 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     url: 'https://wonderland-f0vb.onrender.com/admin-app',
-    cleartext: true
-  },
-  android: {
-    buildOptions: {
-      keystorePath: undefined,
-      keystorePassword: undefined,
-      keystoreAlias: undefined,
-      keystoreAliasPassword: undefined,
-    }
+    cleartext: false
   },
   plugins: {
+    SplashScreen: {
+      launchAutoHide: true,
+    },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
     }

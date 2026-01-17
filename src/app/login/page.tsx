@@ -15,11 +15,19 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
-  const { googleLogin } = useAuth();
+  const [isNativeApp, setIsNativeApp] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const { googleLogin, login } = useAuth();
   const router = useRouter();
 
   // Load Google Sign-In script
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cap = (window as any).Capacitor;
+      setIsNativeApp(!!cap?.isNativePlatform?.());
+    }
+
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
@@ -47,6 +55,25 @@ export default function LoginPage() {
       document.body.removeChild(script);
     };
   }, []);
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    try {
+      const ok = await login(username.trim(), password);
+      if (ok) {
+        router.push('/');
+      } else {
+        setError('بيانات الدخول غير صحيحة');
+      }
+    } catch (err) {
+      console.error('Password login error:', err);
+      setError('فشل تسجيل الدخول');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Initialize Google Sign-In button when ready
   useEffect(() => {
@@ -128,15 +155,53 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Google Sign-In Only */}
-          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? (
-            <div className="glass-subtle rounded-2xl p-5 flex justify-center">
-              <div id="google-sign-in-button" style={{ width: '100%' }}></div>
-            </div>
+          {/* Sign-In Options */}
+          {!isNativeApp ? (
+            process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? (
+              <div className="glass-subtle rounded-2xl p-5 flex justify-center">
+                <div id="google-sign-in-button" style={{ width: '100%' }}></div>
+              </div>
+            ) : (
+              <div className="glass-subtle bg-yellow-500/10 border border-yellow-400/30 rounded-2xl p-4 text-yellow-600 dark:text-yellow-400 text-sm">
+                لم يتم ضبط Google Client ID. الرجاء إضافة NEXT_PUBLIC_GOOGLE_CLIENT_ID إلى متغيرات البيئة.
+              </div>
+            )
           ) : (
-            <div className="glass-subtle bg-yellow-500/10 border border-yellow-400/30 rounded-2xl p-4 text-yellow-600 dark:text-yellow-400 text-sm">
-              لم يتم ضبط Google Client ID. الرجاء إضافة NEXT_PUBLIC_GOOGLE_CLIENT_ID إلى متغيرات البيئة.
-            </div>
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm text-foreground/70 mb-2">اسم المستخدم</label>
+                <input
+                  className="w-full glass-input rounded-xl px-4 py-3 text-foreground"
+                  placeholder="admin"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-foreground/70 mb-2">كلمة المرور</label>
+                <input
+                  type="password"
+                  className="w-full glass-input rounded-xl px-4 py-3 text-foreground"
+                  placeholder="admin123"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full p-3 rounded-xl bg-gradient-to-r from-primary to-amber-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-60"
+              >
+                {isLoading ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول'}
+              </button>
+              <p className="text-xs text-foreground/50 text-center">
+                تسجيل Google لا يعمل داخل التطبيق، استخدم بيانات الدخول.
+              </p>
+            </form>
           )}
 
           {/* Help text */}
