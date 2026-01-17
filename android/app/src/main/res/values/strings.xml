@@ -4,4 +4,5 @@
     <string name="title_activity_main">Wonderland Admin</string>
     <string name="package_name">com.wonderland.admin</string>
     <string name="custom_url_scheme">com.wonderland.admin</string>
+    <string name="server_client_id">1021477358452-rl84k4sosoogajgttclflj15lltf5is5.apps.googleusercontent.com</string>
 </resources>

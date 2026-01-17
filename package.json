@@ -12,6 +12,7 @@
     "@capacitor/android": "^8.0.1",
     "@capacitor/cli": "^8.0.1",
     "@capacitor/core": "^8.0.1",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@google/model-viewer": "^4.1.0",
     "@react-oauth/google": "^0.12.1",
     "cloudinary": "^1.40.0",

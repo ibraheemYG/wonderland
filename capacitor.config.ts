@@ -14,6 +14,11 @@ const config: CapacitorConfig = {
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
+    },
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: '1021477358452-rl84k4sosoogajgttclflj15lltf5is5.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
     }
   }
 };
