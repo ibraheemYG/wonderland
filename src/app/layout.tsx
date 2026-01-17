@@ -16,13 +16,6 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "Wonderland",
   description: "IKEA-Inspired E-commerce for Home Goods",
-  manifest: "/manifest.json",
-  themeColor: "#f59e0b",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Wonderland Admin",
-  },
 };
 
 export default function RootLayout({

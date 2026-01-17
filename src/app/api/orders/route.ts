@@ -131,23 +131,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // إرسال Push Notification للأدمنز
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/push-send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: '🛒 طلب جديد!',
-          message: `طلب #${order.orderNumber} من ${customerName} - ${total.toLocaleString()} د.ع`,
-          url: '/admin-app',
-          targetRole: 'admin',
-          type: 'new_order',
-        }),
-      });
-    } catch (pushError) {
-      console.log('Push notification failed (non-critical):', pushError);
-    }
-
     return NextResponse.json(
       { success: true, data: order, message: 'تم إنشاء الطلب بنجاح' },
       { status: 201 }
